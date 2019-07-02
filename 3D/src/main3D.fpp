@@ -2175,7 +2175,11 @@
          END IF TF
 
          IF (rand.eq.2) THEN ! Updates forcing if slowly varying
+#ifdef CFL_
+            rmp = (timef+dt)/cort
+#else
             rmp = FLOAT(timef+1)/float(fstep)
+#endif
 #ifdef VELOC_
             DO i = ista,iend
                DO j = 1,ny
