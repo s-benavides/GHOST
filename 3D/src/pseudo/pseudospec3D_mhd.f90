@@ -383,12 +383,8 @@
       DOUBLE PRECISION    :: helg
       REAL(KIND=GP)                :: tmq
       REAL(KIND=GP), INTENT(IN)    :: dt
-      INTEGER, INTENT(IN) :: hel,crs,chk
-#ifdef CFL_
       REAL(KIND=GP), INTENT(IN)    :: t
-#else
-      INTEGER, INTENT(IN) :: t
-#endif
+      INTEGER, INTENT(IN) :: hel,crs,chk
       INTEGER             :: i,j,k
 
       divk = 0.0D0
@@ -516,53 +512,29 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-#ifdef CFL_
          WRITE(1,10) t,eng,ens,cur
-#else
-         WRITE(1,10) (t-1)*dt,eng,ens,cur
-#endif
    10    FORMAT( E13.6,E22.14,E22.14,E22.14 )
          CLOSE(1)
          OPEN(1,file='energy.txt',position='append')
-#ifdef CFL_
          WRITE(1,10) t,engk,engm
-#else
-         WRITE(1,10) (t-1)*dt,engk,engm
-#endif
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
-#ifdef CFL_
             WRITE(1,10) t,helk,helm
-#else
-            WRITE(1,10) (t-1)*dt,helk,helm
-#endif
             CLOSE(1)
          ENDIF
          IF (crs.eq.1) THEN
             OPEN(1,file='cross.txt',position='append')
-#ifdef CFL_
             WRITE(1,10) t,crh,asq
-#else
-            WRITE(1,10) (t-1)*dt,crh,asq
-#endif
             CLOSE(1)
          ELSE IF (crs.eq.2) THEN
             OPEN(1,file='cross.txt',position='append')
-#ifdef CFL_
             WRITE(1,10) t,crh,asq,helg
-#else
-            WRITE(1,10) (t-1)*dt,crh,asq,helg
-#endif
             CLOSE(1)
          ENDIF
          IF (chk.eq.1) THEN
             OPEN(1,file='divergence.txt',position='append')
-#ifdef CFL_
             WRITE(1,10) t,divk,divm
-#else
-            WRITE(1,10) (t-1)*dt,divk,divm
-#endif
             CLOSE(1)
          ENDIF
       ENDIF
