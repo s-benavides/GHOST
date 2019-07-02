@@ -59,6 +59,7 @@
 #define MAGFIELD_
 #define UNIFORMB_
 #define ROTATION_
+#define CFL_
 #define INCLUDEFNAME_ 'rmhdb_
 #endif
 
