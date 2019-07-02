@@ -225,6 +225,7 @@
       REAL(KIND=GP)    :: dt,nu,mu
       REAL(KIND=GP)    :: kup,kdn
       REAL(KIND=GP)    :: rmp,rmq,rms
+      REAL(KIND=GP)    :: kcut
       REAL(KIND=GP)    :: rmt,rm1,rm2
       REAL(KIND=GP)    :: dump
       REAL(KIND=GP)    :: stat
