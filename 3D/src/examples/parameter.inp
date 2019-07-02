@@ -10,6 +10,14 @@ mean = 0         ! computes mean fields if 1
 trans = 1        ! computes energy transfer if 1
 /
 
+! cfl  (NOTE: only available for RMHDB solver at the moment)
+&cflcond
+cfl = 0.5        ! cfl condition
+time = 0.0       ! if stat.neq.0, then this is start time
+timef_in = 0.0   ! if stat.neq.0, then keeps track of forcing correlation
+/
+
+
 ! Parameters for time integration
 &parameter
 dt = 7.5e-4      ! time step
