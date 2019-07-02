@@ -293,6 +293,14 @@
       REAL(KIND=GP)    :: zparam0,zparam1,zparam2,zparam3,zparam4
       REAL(KIND=GP)    :: zparam5,zparam6,zparam7,zparam8,zparam9
 #endif
+#ifdef CFL_
+      REAL(KIND=GP)    :: cfl
+      REAL(KIND=GP)    :: time
+      REAL(KIND=GP)    :: timef_in  !for forcing correlation
+      REAL(KIND=GP)    :: timef
+#else
+      INTEGER :: timef
+#endif
 
       INTEGER :: idevice, iret, ncuda, ngcuda, ppn
       INTEGER :: ini,step
@@ -308,7 +316,7 @@
       INTEGER :: ki,kj,kk
       INTEGER :: pind,tind,sind
       INTEGER :: timet,timec
-      INTEGER :: times,timef
+      INTEGER :: times
       INTEGER :: timep,pstep,lgmult
       INTEGER :: ihcpu1,ihcpu2
       INTEGER :: ihomp1,ihomp2
@@ -463,6 +471,12 @@
 #if defined(TESTPART_) && defined(MAGFIELD_)
       NAMELIST / ptestpart / gyrof,vtherm
 #endif
+#ifdef CFL_
+      NAMELIST / cflcond / cfl
+      NAMELIST / cflcond / time
+      NAMELIST / cflcond / timef_in
+#endif
+
 
 !
 ! Initialization
@@ -502,7 +516,8 @@
      ENDIF
      CALL cudaGetDeviceProperties(devprop,idevice)
      IF ( nstreams .GT. 1 .AND. devprop%deviceOverlap .EQ. 0 ) THEN
-       WRITE(*,*)'MAIN: Async transfer and computation overlap not supported!'
+       WRITE(*,*)'MAIN: Async transfer and computation overlap not &
+                     supported!'
 !      STOP
      ENDIF
      iret = cudaGetDevice(idevice)
@@ -1345,7 +1360,22 @@
       CALL MPI_BCAST(gyrof    ,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(vtherm   ,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
 #endif
-
+#ifdef CFL_
+! Reads parameters for CFL condition
+!     cfl       : safety factor for cfl condition
+! A few parameter inputs during restarted simulations:
+!     time      : time
+!     timef_in  : timer for correlation of forcing (outputted)
+!
+      IF (myrank.eq.0) THEN
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
+         READ(1,NML=cflcond)
+         CLOSE(1)
+      ENDIF
+      CALL MPI_BCAST(cfl,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(time,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(timef_in,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+#endif
 ! Before continuing, we verify that all parameters and compilation
 ! options are compatible with the SOLVER being used
 
@@ -1461,7 +1491,11 @@
 
 #ifdef VELOC_
       ampl = 1.0_GP
+#ifdef CFL_
+        timef=cort
+#else
       timef = fstep
+#endif
       IF (rand.eq.2) THEN
          ALLOCATE( fxold(nz,ny,ista:iend) )
          ALLOCATE( fyold(nz,ny,ista:iend) )
@@ -1595,7 +1629,11 @@
       INCLUDE 'initialfb.f90'           ! electromotive forcing
 #endif
 #ifdef ADVECT_
+#ifdef CFL_
+        timef=cort
+#else
       timef = fstep
+#endif
       INCLUDE 'initialfq.f90'           ! quantum thermal forcing
 #endif
 
@@ -1611,6 +1649,9 @@
       timec = cstep
       times = sstep
       timep = pstep
+#ifdef CFL_
+      time = 0.0_GP  ! in case stat=0 but time=/=0 in parameter file
+#endif
 #if defined(VELOC_) || defined (ADVECT_)
       INCLUDE 'initialv.f90'            ! initial velocity
 #endif
@@ -1677,7 +1718,7 @@
       ELSE
 
 ! If stat.ne.0 a previous run is continued
-
+      print*,'READING...',stat
       ini = int((stat-1)*tstep) + 1
       tind = int(stat)
       sind = int(real(ini,kind=GP)/real(sstep,kind=GP)+1)
@@ -1687,7 +1728,11 @@
       timep = 0
       times = int(modulo(float(ini-1),float(sstep)))
       timec = int(modulo(float(ini-1),float(cstep)))
+#ifdef CFL_
+      timef = timef_in
+#else
       timef = int(modulo(float(ini-1),float(fstep)))
+#endif
 
 #ifdef VELOC_
       CALL io_read(1,idir,'vx',ext,planio,R1)
@@ -2013,12 +2058,19 @@
       ENDIF
 
  RK : DO t = ini,step
+#ifdef CFL_
+        INCLUDE CFLCOND_
+#endif
 
 ! Updates the external forcing. Every 'fsteps'
 ! the phase or amplitude is changed according 
 ! to the value of 'rand'.
+#ifdef CFL_
+ TF :    IF (timef.ge.cort) THEN
+#else
  TF :    IF (timef.eq.fstep) THEN
-            timef = 0
+#endif 
+           timef = 0
 
             IF (rand.eq.1) THEN      ! randomizes phases
 
@@ -2152,6 +2204,13 @@
             timet = 0
             tind = tind+1
             WRITE(ext, fmtext) tind
+#ifdef CFL_
+           IF (myrank.eq.0) THEN
+                OPEN(1,file='time_field.txt',position='append')
+                WRITE(1,FMT='(A4, F12.6, F12.6)') ext,time,timef
+                CLOSE(1)
+           ENDIF
+#endif
 #ifdef VELOC_
             rmp = 1.0_GP/ &
 	          (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))
@@ -2535,6 +2594,13 @@
             times = 0
             sind = sind+1
             WRITE(ext, fmtext) sind
+#ifdef CLF_
+           IF (myrank.eq.0) THEN
+                OPEN(1,file='time_spec.txt',position='append')
+                WRITE(1,FMT='(A4,F12.6)') ext,time
+                CLOSE(1)
+           ENDIF
+#endif
             INCLUDE SPECTROUTPUT_
          ENDIF
 
@@ -2699,7 +2765,12 @@
          timet = timet+1
          times = times+1
          timec = timec+1
+#ifdef CFL_
+         time = time+dt
+         timef = timef+dt
+#else
          timef = timef+1
+#endif
          timep = timep+1
 
       END DO RK
