@@ -1,9 +1,4 @@
 ! Global quantities computed in MHD runs
-#ifdef CFL_
-        dump = time
-#else
-        dump = (t-1)*dt
-#endif
             CALL mhdcheck(vx,vy,vz,ax,ay,az,dump,dt,1,1,0)
             CALL cross(vx,vy,vz,fx,fy,fz,eps,1)
             CALL cross(ax,ay,az,mx,my,mz,epm,0)
