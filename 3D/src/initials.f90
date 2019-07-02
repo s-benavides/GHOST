@@ -9,8 +9,6 @@
 ! the global amplitude of the concentration, and variables 
 ! cparam0-9 can be used to control the amplitudes of individual 
 ! terms. At the end, the initial concentration of the scalar in 
-!t est
-
 ! spectral space should be stored in the array th.
 
 ! Constant uniform scalar/density
