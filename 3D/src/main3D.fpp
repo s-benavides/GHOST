@@ -298,7 +298,11 @@
       REAL(KIND=GP)    :: time
       REAL(KIND=GP)    :: timef_in  !for forcing correlation
       REAL(KIND=GP)    :: timef
+      REAL(KIND=GP)    :: ta     ! for situations in which input is either
+                                 ! real or integer. For subroutines with
+                                 ! time.
 #else
+      INTEGER :: ta
       INTEGER :: timef
 #endif
 
