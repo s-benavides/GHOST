@@ -1479,9 +1479,11 @@
          CALL GTStart(ihwtm2)
       ENDIF
       CALL fftp3d_create_plan(planrc,(/nx,ny,nz/),FFTW_REAL_TO_COMPLEX, &
-                             FFTW_ESTIMATE)
+!                             FFTW_ESTIMATE)
+                             FFTW_MEASURE)
       CALL fftp3d_create_plan(plancr,(/nx,ny,nz/),FFTW_COMPLEX_TO_REAL, &
-                             FFTW_ESTIMATE)
+!                             FFTW_ESTIMATE)
+                             FFTW_MEASURE)
       IF (bench.eq.2) THEN
          CALL MPI_BARRIER(MPI_COMM_WORLD,ierr)
          CALL GTStop(ihcpu2)
