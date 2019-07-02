@@ -2535,6 +2535,13 @@
 
          IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
             timec = 0
+! Making dump the time, because now mhdcheck (need to change this for
+! other global) takes in time, real number, as an input.
+#ifdef CFL_
+        dump = time
+#else
+        dump = (t-1)*dt
+#endif 
             INCLUDE GLOBALOUTPUT_
 
             IF (mean.eq.1) THEN ! Update mean fields
