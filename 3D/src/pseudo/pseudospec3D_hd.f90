@@ -677,6 +677,7 @@
 
       USE fprecision
       USE commtypes
+      USE kes
       USE grid
       USE mpivars
 !$    USE threads
