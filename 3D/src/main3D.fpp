@@ -2603,7 +2603,7 @@
 
 ! Every 'sstep' steps, generates external files 
 ! with the power spectrum.
-
+ 
          IF ((times.eq.sstep).and.(bench.eq.0)) THEN
             times = 0
             sind = sind+1
