@@ -336,7 +336,7 @@
       END SUBROUTINE gauge3
 
 !*****************************************************************
-      SUBROUTINE mhdcheck(a,b,c,ma,mb,mc,t,dt,hel,crs,chk)
+      SUBROUTINE mhdcheck(a,b,c,ma,mb,mc,hek,hok,hem,hom,t,dt,hel,crs,chk)
 !-----------------------------------------------------------------
 !
 ! Consistency check for the conservation of the total
@@ -370,6 +370,7 @@
       USE commtypes
       USE grid
       USE hall
+      USE kes
       USE mpivars
 !$    USE threads
       IMPLICIT NONE
@@ -377,7 +378,8 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: ma,mb,mc
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend) :: c1,c2,c3
-      DOUBLE PRECISION    :: engk,engm,eng,ens
+      DOUBLE PRECISION    :: engk,engm
+      DOUBLE PRECISION    :: denk,denm,henk,henm
       DOUBLE PRECISION    :: divk,divm,asq,crh
       DOUBLE PRECISION    :: helk,helm,cur,tmp
       DOUBLE PRECISION    :: helg
@@ -385,6 +387,7 @@
       REAL(KIND=GP), INTENT(IN)    :: dt
       REAL(KIND=GP), INTENT(IN)    :: t
       INTEGER, INTENT(IN) :: hel,crs,chk
+      INTEGER, INTENT(IN) :: hek,hok,hem,hom
       INTEGER             :: i,j,k
 
       divk = 0.0D0
@@ -473,13 +476,14 @@
 ! and magnetic helicity
 !
       CALL energy(a,b,c,engk,1)        
-      CALL energy(a,b,c,ens,0)
-      CALL rotor3(mb,mc,c1,1)
+      CALL energy2(a,b,c,denk,1+hek) ! energy hyper diss
+      CALL energy2(a,b,c,henk,1-hok) ! energy hypo diss
+      CALL rotor3(mb,mc,c1,1) ! computing bx
       CALL rotor3(ma,mc,c2,2)
       CALL rotor3(ma,mb,c3,3)
       CALL energy(c1,c2,c3,engm,1)
-      CALL energy(c1,c2,c3,cur,0)
-      eng = engk+engm
+      CALL energy2(c1,c2,c3,denm,1+hem) ! mag energy hyper diss
+      CALL energy2(c1,c2,c3,henm,1-hom) ! mag energy hypo diss
       IF (hel.eq.1) THEN
          CALL helicity(a,b,c,helk)
          CALL helicity(ma,mb,mc,helm)
@@ -512,11 +516,8 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,ens,cur
-   10    FORMAT( E13.6,E22.14,E22.14,E22.14 )
-         CLOSE(1)
-         OPEN(1,file='energy.txt',position='append')
-         WRITE(1,10) t,engk,engm
+         WRITE(1,10) t,engk,engm,denk,denm,henk,henm
+   10    FORMAT( E13.6,E22.14,E22.14,E22.14,E22.14,E22.14,E22.14 )
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
