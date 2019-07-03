@@ -222,7 +222,7 @@
       DOUBLE PRECISION :: eps,epm
 !$    DOUBLE PRECISION, EXTERNAL :: omp_get_wtime
 
-      REAL(KIND=GP)    :: dt,nu,mu
+      REAL(KIND=GP)    :: dt,nu,hnu
       REAL(KIND=GP)    :: kup,kdn
       REAL(KIND=GP)    :: rmp,rmq,rms
       REAL(KIND=GP)    :: kcut
@@ -274,6 +274,7 @@
       REAL(KIND=GP)    :: amach, cp2
 #endif
 #ifdef MAGFIELD_
+      REAL(KIND=GP)    :: mu,hmu
       REAL(KIND=GP)    :: mkup,mkdn
       REAL(KIND=GP)    :: m0,a0
       REAL(KIND=GP)    :: mparam0,mparam1,mparam2,mparam3,mparam4
@@ -313,6 +314,7 @@
       INTEGER :: anis
       INTEGER :: mult
       INTEGER :: t,o
+      INTEGER :: hek,hem ! Hyperviscosity powers
       INTEGER :: i,j,k
       INTEGER :: ki,kj,kk
       INTEGER :: pind,tind,sind
@@ -329,6 +331,7 @@
 #ifdef MAGFIELD_
       INTEGER :: dyna
       INTEGER :: corr
+      INTEGER :: hok,hom ! Hypoviscosity powers
 #endif
 #ifdef WAVEFUNCTION_
       INTEGER :: cflow
@@ -385,7 +388,7 @@
       NAMELIST / boxparams / Lx,Ly,Lz,Dkk
 #endif
 #if defined(VELOC_) || defined(ADVECT_)
-      NAMELIST / velocity / f0,u0,kdn,kup,nu,fparam0,fparam1,fparam2
+      NAMELIST / velocity / f0,u0,kdn,kup,nu,hnu,hek,hok,fparam0,fparam1,fparam2
       NAMELIST / velocity / fparam3,fparam4,fparam5,fparam6,fparam7
       NAMELIST / velocity / fparam8,fparam9,vparam0,vparam1,vparam2
       NAMELIST / velocity / vparam3,vparam4,vparam5,vparam6,vparam7
@@ -425,7 +428,7 @@
       NAMELIST / cmhdb / amach
 #endif
 #ifdef MAGFIELD_
-      NAMELIST / magfield / m0,a0,mkdn,mkup,mu,corr,mparam0,mparam1
+      NAMELIST / magfield / m0,a0,mkdn,mkup,mu,hmu,hem,hom,corr,mparam0,mparam1
       NAMELIST / magfield / mparam2,mparam3,mparam4,mparam5,mparam6
       NAMELIST / magfield / mparam7,mparam8,mparam9,aparam0,aparam1
       NAMELIST / magfield / aparam2,aparam3,aparam4,aparam5,aparam6
@@ -777,6 +780,9 @@
       CALL MPI_BCAST(kdn,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(kup,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(nu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hnu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hek,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hok,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam2,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
@@ -1065,6 +1071,9 @@
       CALL MPI_BCAST(mkdn,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mkup,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hmu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hem,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hom,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(corr,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
