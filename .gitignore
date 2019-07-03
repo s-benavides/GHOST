@@ -25,4 +25,7 @@ _$*
 *.elc
 *.ln
 core
+
+# Added by Santi
+3D/src/test/
 # CVS default ignores end
