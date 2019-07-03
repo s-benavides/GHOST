@@ -356,7 +356,7 @@
 !     ma : vector potential in the x-direction
 !     mb : vector potential in the y-direction
 !     mc : vector potential in the z-direction
-!     t  : number of time steps made, if CFL is added, then time
+!     t  : time
 !     dt : time step
 !     hel: =0 skips helicity computation
 !          =1 computes the helicity
@@ -472,7 +472,7 @@
 ! and square current, and the kinetic 
 ! and magnetic helicity
 !
-      CALL energy(a,b,c,engk,1)
+      CALL energy(a,b,c,engk,1)        
       CALL energy(a,b,c,ens,0)
       CALL rotor3(mb,mc,c1,1)
       CALL rotor3(ma,mc,c2,2)
