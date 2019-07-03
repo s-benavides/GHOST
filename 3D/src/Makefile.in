@@ -11,6 +11,7 @@ NZ       = 256
 ORD      = 4
 
 # SOLVER:  (read the file SOLVERS for a list of options)
+#SOLVER   = HD
 SOLVER   = RMHDB
 
 # PRECISION: (SINGLE or DOUBLE)
