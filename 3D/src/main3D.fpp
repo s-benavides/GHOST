@@ -715,6 +715,7 @@
          fstep = int(cort/dt)
       ENDIF
       CALL MPI_BCAST(dt,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(cort,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(step,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(tstep,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(sstep,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
