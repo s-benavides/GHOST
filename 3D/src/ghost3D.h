@@ -59,6 +59,7 @@
 #define MAGFIELD_
 #define UNIFORMB_
 #define ROTATION_
+#define CFL_
 #define INCLUDEFNAME_ 'rmhdb_
 #endif
 
@@ -286,3 +287,4 @@
 #define SPECTROUTPUT_ STRINGIFY(INCLUDEFNAME_)spectrum.f90'
 #define RKSTEP1_ STRINGIFY(INCLUDEFNAME_)rkstep1.f90'
 #define RKSTEP2_ STRINGIFY(INCLUDEFNAME_)rkstep2.f90'
+#define CFLCOND_ STRINGIFY(INCLUDEFNAME_)cfl.f90'

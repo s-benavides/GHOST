@@ -356,7 +356,7 @@
 !     ma : vector potential in the x-direction
 !     mb : vector potential in the y-direction
 !     mc : vector potential in the z-direction
-!     t  : number of time steps made
+!     t  : time
 !     dt : time step
 !     hel: =0 skips helicity computation
 !          =1 computes the helicity
@@ -383,8 +383,8 @@
       DOUBLE PRECISION    :: helg
       REAL(KIND=GP)                :: tmq
       REAL(KIND=GP), INTENT(IN)    :: dt
+      REAL(KIND=GP), INTENT(IN)    :: t
       INTEGER, INTENT(IN) :: hel,crs,chk
-      INTEGER, INTENT(IN) :: t
       INTEGER             :: i,j,k
 
       divk = 0.0D0
@@ -472,7 +472,7 @@
 ! and square current, and the kinetic 
 ! and magnetic helicity
 !
-      CALL energy(a,b,c,engk,1)
+      CALL energy(a,b,c,engk,1)        
       CALL energy(a,b,c,ens,0)
       CALL rotor3(mb,mc,c1,1)
       CALL rotor3(ma,mc,c2,2)
@@ -512,29 +512,29 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) (t-1)*dt,eng,ens,cur
+         WRITE(1,10) t,eng,ens,cur
    10    FORMAT( E13.6,E22.14,E22.14,E22.14 )
          CLOSE(1)
          OPEN(1,file='energy.txt',position='append')
-         WRITE(1,10) (t-1)*dt,engk,engm
+         WRITE(1,10) t,engk,engm
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
-            WRITE(1,10) (t-1)*dt,helk,helm
+            WRITE(1,10) t,helk,helm
             CLOSE(1)
          ENDIF
          IF (crs.eq.1) THEN
             OPEN(1,file='cross.txt',position='append')
-            WRITE(1,10) (t-1)*dt,crh,asq
+            WRITE(1,10) t,crh,asq
             CLOSE(1)
          ELSE IF (crs.eq.2) THEN
             OPEN(1,file='cross.txt',position='append')
-            WRITE(1,10) (t-1)*dt,crh,asq,helg
+            WRITE(1,10) t,crh,asq,helg
             CLOSE(1)
          ENDIF
          IF (chk.eq.1) THEN
             OPEN(1,file='divergence.txt',position='append')
-            WRITE(1,10) (t-1)*dt,divk,divm
+            WRITE(1,10) t,divk,divm
             CLOSE(1)
          ENDIF
       ENDIF

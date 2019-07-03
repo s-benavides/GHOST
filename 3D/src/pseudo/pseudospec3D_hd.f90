@@ -999,7 +999,7 @@
 !     d  : force in the x-direction
 !     e  : force in the y-direction
 !     f  : force in the z-direction
-!     t  : number of time steps made
+!     t  : time
 !     dt : time step
 !     hel: =0 skips kinetic helicity computation
 !          =1 computes the kinetic helicity
@@ -1020,8 +1020,8 @@
       DOUBLE PRECISION    :: div,tmp
       REAL(KIND=GP)       :: dt
       REAL(KIND=GP)       :: tmq
+      REAL(KIND=GP), INTENT(IN) :: t
       INTEGER, INTENT(IN) :: hel,chk
-      INTEGER, INTENT(IN) :: t
       INTEGER             :: i,j,k
 
       div = 0.0D0
@@ -1086,17 +1086,17 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) (t-1)*dt,eng,ens,pot
-   10    FORMAT( E13.6,E25.18,E25.18,E25.18 )
+         WRITE(1,10) t,eng,ens,pot
+   10    FORMAT( E13.6,E25.18,E25.18,E26.18 )
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
-            WRITE(1,FMT='(E13.6,E25.18)') (t-1)*dt,khe
+            WRITE(1,FMT='(E13.6,E25.18)') t,khe
             CLOSE(1)
          ENDIF
          IF (chk.eq.1) THEN
             OPEN(1,file='divergence.txt',position='append')
-            WRITE(1,FMT='(E13.6,E25.18)') (t-1)*dt,div
+            WRITE(1,FMT='(E13.6,E25.18)') t,div
             CLOSE(1)
          ENDIF
       ENDIF
