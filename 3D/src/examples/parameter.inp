@@ -1,63 +1,79 @@
 ! General configuration flags
 &status
-idir = "/ptmp/run"
-odir = "/ptmp/run"
+idir = "../outs"
+odir = "../outs"
 stat = 0         ! last binary file if restarting an old run
 mult = 1         ! decreases the time step
 bench = 0        ! benchmark mode if 1
 outs = 0         ! controls the amount of output
 mean = 0         ! computes mean fields if 1
-trans = 1        ! computes energy transfer if 1
+trans = 0        ! computes energy transfer if 1
 /
 
-! cfl  (NOTE: only available for RMHDB solver at the moment)
+
+! Parameters for time integration
+&parameter
+dt = 7.5e-4      ! time step (if RMHDB, just sets initial dt)
+step = 3600001   ! total number of steps
+tstep = 2300     ! number of steps between binary output
+sstep = 230      ! number of steps between spectrum output
+cstep = 1 ! 23   ! number of steps between writing global quantities
+rand = 1         ! random phases if 1
+cort = 1.0e-2   ! correlation time of the external forcing. if cort=dt, then updates every step (white noise)
+seed = 1000      ! seed for the random number generator
+/
+
+! cfl  (NOTE: only available for RMHDB solver)
 &cflcond
 cfl = 0.5        ! cfl condition
 time = 0.0       ! if stat.neq.0, then this is start time
 timef_in = 0.0   ! if stat.neq.0, then keeps track of forcing correlation
 /
 
-
-! Parameters for time integration
-&parameter
-dt = 7.5e-4      ! time step
-step = 12001     ! total number of steps
-tstep = 500      ! number of steps between binary output
-sstep = 250      ! number of steps between spectrum output
-cstep = 10       ! number of steps between writing global quantities
-rand = 1         ! random phases if 1
-cort = 7.5e-4    ! correlation time of the external forcing
-seed = 1000      ! seed for the random number generator
-/
-
 ! Boz size
 &boxparams
-Lx = 2.00        ! Length of the box in x
+Lx = 1.00        ! Length of the box in x
 Ly = 1.00        ! Length of the box in y
-Lz = 3.00        ! Length of the box in z
+Lz = 1.00        ! Length of the box in z
 /
 
 ! Parameters for the velocity field
 &velocity
-f0 = 0.37714265  ! amplitude of the mechanical forcing
+f0 = 1.0         ! amplitude of the mechanical forcing
 u0 = 1.00        ! amplitude of the initial velocity field
-kdn = 2.00       ! minimum wavenumber
-kup = 2.00       ! maximum wavenumber
-nu = 3.e-4       ! kinematic viscosity
+kdn = 8.00       ! minimum wavenumber
+kup = 10.00      ! maximum wavenumber
+nu = 3.e-3       ! kinematic (hyper)viscosity
+hnu = 3.e-3      ! kinematic (hypo)viscosity
+hek = 1		 ! hyperviscosity power (nabla^(2*hek))
+hok = 1		 ! hypoviscosity power (nabla^(-2*hek))
 fparam0 = 0.90   ! fparam0-9 can be used to control the forcing
-vparam0 = 0.10   ! idem for the initial velocity field
+fparam1 = 0.90   ! fparam0-9 can be used to control the forcing
+fparam2 = 0.90   ! fparam0-9 can be used to control the forcing
+vparam0 = 1.000   ! idem for the initial velocity field
+vparam1 = 1.000   ! for abc IC
+vparam2 = 1.000   ! for abc IC
+
 /
 
 ! Parameters for the magnetic field (MHD, HMHD solvers)
 &magfield
 m0 = 0.00        ! amplitude of the electromotive forcing
-a0 = 1.00        ! amplitude of the magnetic field
-mkdn = 10.00     ! minimum wavenumber
-mkup = 20.00     ! maximum wavenumber
-mu = 2.e-3       ! magnetic diffusivity
+a0 = 0.00        ! amplitude of the magnetic field
+mkdn = 8.00     ! minimum wavenumber
+mkup = 10.00     ! maximum wavenumber
+mu = 3.e-3       ! magnetic diffusivity
+hmu = 3.e-3      ! magnetic (hypo)viscosity
+hem = 1          ! hyperviscosity power (nabla^(2*hek))
+hom = 1          ! hypoviscosity power (nabla^(-2*hek))
 corr = 0         ! correlation between the fields/forcings
 mparam0 = 0.90   ! mparam0-9 can be used to control the forcing
-aparam0 = 0.10   ! idem for the initial magnetic field
+aparam0 = 1.10   ! idem for the initial magnetic field or A amplitude
+aparam1 = 1.10   ! B amplitude
+aparam2 = 1.10   ! C amplitude
+aparam3 = 0.0    ! index of spectral fall off of noise, fixed here to 4.5
+aparam4 = 0.10   ! noise level as fraction of mag. energy
+
 / 
 
 ! Parameters for the Boussinesq solvers (BOUSS, ROTBOUSS solvers)
@@ -93,7 +109,7 @@ dyna = 0         ! dynamo run if 1
 &uniformb
 bx0 = 0.00       ! uniform magnetic field in x
 by0 = 0.00       ! uniform magnetic field in y
-bz0 = 1.00       ! uniform magnetic field in z
+bz0 = 10.00       ! uniform magnetic field in z
 /
 
 ! Parameters for runs with the Hall term (HMHD, HMHDB solvers)
@@ -106,7 +122,7 @@ gspe = 1         ! computes generalized helicity if 1
 &rotation
 omegax = 0.00    ! uniform rotation in x
 omegay = 0.00    ! uniform rotation in y
-omegaz = 10.00   ! uniform rotation in z
+omegaz = 0.00   ! uniform rotation in z
 /
 
 ! Parameters for compressible runs (COMPHD, CMHD and CMHDB solvers)
@@ -168,12 +184,12 @@ ilgwrtunit = 0   ! Write part. positions in box units (=1) or grid units (=0)
 lgseedfile = 'user_seed_file.dat'
 /
 
-! Parameters for inertial particles
+! Parameters for intertial particles
 &pinerpart
-tau = 0.1        ! Stokes time
 grav = 0.00      ! Effective gravity acceleration
 dolightp = 0     ! Compute mass ratio terms (0=heavy particles, 1=light part)
 gamma = 0.00     ! Fluid to particle mass ratio (ignored when dolightp=0)
+tau = 0.1        ! Stokes time
 /
 
 ! Parameters for test particles
