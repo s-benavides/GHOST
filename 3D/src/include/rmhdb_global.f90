@@ -1,5 +1,5 @@
 ! Global quantities computed in MHD runs
-            CALL mhdcheck(vx,vy,vz,ax,ay,az,dump,dt,1,1,0)
+            CALL mhdcheck(vx,vy,vz,ax,ay,az,hek,hok,hem,hom,dump,dt,1,1,0)
             CALL cross(vx,vy,vz,fx,fy,fz,eps,1)
             CALL cross(ax,ay,az,mx,my,mz,epm,0)
             CALL maxabs(vx,vy,vz,rmp,0)
