@@ -1056,7 +1056,7 @@
       END SUBROUTINE maxabs
 
 !*****************************************************************
-      SUBROUTINE hdcheck(a,b,c,d,e,f,t,dt,hel,chk)
+      SUBROUTINE hdcheck(a,b,c,d,e,f,hek,hok,t,dt,hel,chk)
 !-----------------------------------------------------------------
 !
 ! Consistency check for the conservation of energy, 
@@ -1091,12 +1091,13 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: d,e,f
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
-      DOUBLE PRECISION    :: eng,ens,pot,khe
+      DOUBLE PRECISION    :: eng,henk,denk,pot,khe
       DOUBLE PRECISION    :: div,tmp
       REAL(KIND=GP)       :: dt
       REAL(KIND=GP)       :: tmq
       REAL(KIND=GP), INTENT(IN) :: t
       INTEGER, INTENT(IN) :: hel,chk
+      INTEGER, INTENT(IN) :: hek,hok
       INTEGER             :: i,j,k
 
       div = 0.0D0
@@ -1147,8 +1148,9 @@
 !
 ! Computes the mean energy, enstrophy, and kinetic helicity
 !
-      CALL energy(a,b,c,eng,1) !a^2 + b^2 + c^2
-      CALL energy(a,b,c,ens,0) ! (curl(a,b,x)).(curl(a,b,c))
+      CALL energy(a,b,c,eng,1)  ! a^2 + b^2 + c^2
+      CALL energy2(a,b,c,denk,1+hek) ! energy hyper diss 
+      CALL energy2(a,b,c,henk,1-hok) ! energy hypo diss
       IF (hel.eq.1) THEN
          CALL helicity(a,b,c,khe)
       ENDIF
@@ -1161,7 +1163,7 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,ens,pot
+         WRITE(1,10) t,eng,denk,henk,pot
    10    FORMAT( E13.6,E25.18,E25.18,E26.18 )
          CLOSE(1)
          IF (hel.eq.1) THEN
