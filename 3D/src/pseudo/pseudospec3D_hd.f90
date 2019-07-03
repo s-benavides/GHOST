@@ -662,6 +662,80 @@
       END SUBROUTINE energy
 
 !*****************************************************************
+      SUBROUTINE energy2(a,b,c,d,kin)
+!-----------------------------------------------------------------
+!
+! Computes the mean energy of a vector field.
+! The output is only valid in the first node.
+!
+! Parameters
+!     a  : input matrix in the x-direction
+!     b  : input matrix in the y-direction
+!     c  : input matrix in the z-direction
+!     d  : at the output contains the energy
+!     kin: power of nabla: k^(2*kin) 
+
+      USE fprecision
+      USE commtypes
+      USE grid
+      USE mpivars
+!$    USE threads
+      IMPLICIT NONE
+
+      COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
+      COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
+      DOUBLE PRECISION, INTENT(OUT) :: d
+      DOUBLE PRECISION              :: dloc
+      REAL(KIND=GP)                 :: tmp
+      INTEGER, INTENT(IN) :: kin
+      INTEGER             :: i,j,k
+
+      dloc = 0.0D0
+      tmp = 1.0_GP/ &
+            (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
+!
+! Computes (nabla^{kin}(a,b,c)).cdot.(nabla^{kin}(a,b,c))
+!
+         IF (ista.eq.1) THEN
+!$omp parallel do private (k) reduction(+:dloc)
+            DO j = 1,ny
+               DO k = 1,nz
+                  dloc = dloc+(kn2(k,j,1))**kin*(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
+                         abs(c(k,j,1))**2)*tmp
+               END DO
+            END DO
+!$omp parallel do if (iend-2.ge.nth) private (j,k) reduction(+:dloc)
+            DO i = 2,iend
+!$omp parallel do if (iend-2.lt.nth) private (k) reduction(+:dloc)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                            abs(c(k,j,i))**2)*tmp
+                  END DO
+               END DO
+            END DO
+          ELSE
+!$omp parallel do if (iend-ista.ge.nth) private (j,k) reduction(+:dloc)
+            DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k) reduction(+:dloc)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                            abs(c(k,j,i))**2)*tmp
+                  END DO
+               END DO
+            END DO
+          ENDIF
+!
+! Computes the reduction between nodes
+!
+      CALL MPI_REDUCE(dloc,d,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+
+      RETURN
+      END SUBROUTINE energy2
+
+!*****************************************************************
       SUBROUTINE helicity(a,b,c,d)
 !-----------------------------------------------------------------
 !
@@ -1072,8 +1146,8 @@
 !
 ! Computes the mean energy, enstrophy, and kinetic helicity
 !
-      CALL energy(a,b,c,eng,1)
-      CALL energy(a,b,c,ens,0)
+      CALL energy(a,b,c,eng,1) !a^2 + b^2 + c^2
+      CALL energy(a,b,c,ens,0) ! (curl(a,b,x)).(curl(a,b,c))
       IF (hel.eq.1) THEN
          CALL helicity(a,b,c,khe)
       ENDIF
