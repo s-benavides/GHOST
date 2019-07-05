@@ -142,6 +142,7 @@
 
       COMPLEX(KIND=GP), INTENT (IN), DIMENSION(nz,ny,ista:iend) :: a
       COMPLEX(KIND=GP), INTENT(OUT), DIMENSION(nz,ny,ista:iend) :: b
+      REAL(KIND=GP), INTENT(IN) :: nu,hnu
       INTEGER, INTENT (IN) :: hyper,hypo
       INTEGER :: i,j,k
 
