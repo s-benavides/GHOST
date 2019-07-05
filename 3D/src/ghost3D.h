@@ -21,6 +21,7 @@
 #ifdef HD_SOL
 #define DNS_
 #define VELOC_
+#define CFL_
 #define INCLUDEFNAME_ 'hd_
 #endif
 
@@ -42,6 +43,7 @@
 #define DNS_
 #define VELOC_
 #define MAGFIELD_
+#define CFL_
 #define INCLUDEFNAME_ 'mhd_
 #endif
 
@@ -50,6 +52,7 @@
 #define VELOC_
 #define MAGFIELD_
 #define UNIFORMB_
+#define CFL_
 #define INCLUDEFNAME_ 'mhdb_
 #endif
 
@@ -137,6 +140,7 @@
 #define DNS_
 #define VELOC_
 #define ROTATION_
+#define CFL_
 #define INCLUDEFNAME_ 'roth_
 #endif 
 
