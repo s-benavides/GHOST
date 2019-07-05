@@ -121,7 +121,7 @@
       END SUBROUTINE laplak3
 
 !*****************************************************************
-      SUBROUTINE laplak3_v2(a,b,kin)
+      SUBROUTINE laplak3_v2(a,b,hyper,hypo)
 !-----------------------------------------------------------------
 !
 ! Computes \nabla^(2*kin)(a) 
@@ -129,7 +129,8 @@
 ! Parameters
 !     a: input matrix
 !     b: at the output contains the Laplacian
-!     kin: order of laplacian (can be positive or negative)
+!     hyper: order of laplacian for dissipation
+!     hypo: order of inverse laplacian for hypodissipation
 !
       USE kes
       USE grid
@@ -139,7 +140,7 @@
 
       COMPLEX(KIND=GP), INTENT (IN), DIMENSION(nz,ny,ista:iend) :: a
       COMPLEX(KIND=GP), INTENT(OUT), DIMENSION(nz,ny,ista:iend) :: b
-      INTEGER, INTENT (IN) :: kin
+      INTEGER, INTENT (IN) :: hyper,hypo
       INTEGER :: i,j,k
 
 !$omp parallel do if (iend-ista.ge.nth) private (j,k)
@@ -147,7 +148,7 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k)
          DO j = 1,ny
             DO k = 1,nz
-               b(k,j,i) = -kk2(k,j,i)**(kin)*a(k,j,i)
+               b(k,j,i) = -(kk2(k,j,i)**(hyper)+kk2(k,j,i)**(-hypo))*a(k,j,i)
             END DO
          END DO
       END DO
