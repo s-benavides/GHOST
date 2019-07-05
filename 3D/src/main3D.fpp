@@ -314,7 +314,7 @@
       INTEGER :: anis
       INTEGER :: mult
       INTEGER :: t,o
-      INTEGER :: hek,hem ! Hyperviscosity powers
+      INTEGER :: hek,hok ! Hyperviscosity powers
       INTEGER :: i,j,k
       INTEGER :: ki,kj,kk
       INTEGER :: pind,tind,sind
@@ -331,7 +331,7 @@
 #ifdef MAGFIELD_
       INTEGER :: dyna
       INTEGER :: corr
-      INTEGER :: hok,hom ! Hypoviscosity powers
+      INTEGER :: hem,hom ! Hypoviscosity powers
 #endif
 #ifdef WAVEFUNCTION_
       INTEGER :: cflow
