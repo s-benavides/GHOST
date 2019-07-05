@@ -15,9 +15,9 @@
          CALL nonlhd3(C4,C5,C6,C7,1)
          CALL nonlhd3(C4,C5,C6,C8,2)
          CALL nonlhd3(C4,C5,C6,C4,3)
-         CALL laplak3(vx,vx)
-         CALL laplak3(vy,vy)
-         CALL laplak3(vz,vz)
+         CALL diss(vx,vx,hek,hok,nu,hnu)   ! vx =-(k^(2*hek)+k^(-2*hok))*vx
+         CALL diss(vy,vy,hek,hok,nu,hnu)
+         CALL diss(vz,vz,hek,hok,nu,hnu)
 
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             THEN
