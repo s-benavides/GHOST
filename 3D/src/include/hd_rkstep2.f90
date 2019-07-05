@@ -1,12 +1,12 @@
 ! Step 2 of Runge-Kutta for the HD equations
 ! Computes the nonlinear terms and evolves the equations in dt/o
-         CALL prodre3(vx,vy,vz,C4,C5,C6)
-         CALL nonlhd3(C4,C5,C6,C7,1)
+         CALL prodre3(vx,vy,vz,C4,C5,C6)  ! curl(V)xV
+         CALL nonlhd3(C4,C5,C6,C7,1)      ! projects to incompressible
          CALL nonlhd3(C4,C5,C6,C8,2)
          CALL nonlhd3(C4,C5,C6,C4,3)
-         CALL laplak3(vx,vx)
-         CALL laplak3(vy,vy)
-         CALL laplak3(vz,vz)
+         CALL laplak3_v2(vx,vx,hek,hok)   ! vx = -(k^(2*hek)+k^(-2*hok))*vx
+         CALL laplak3_v2(vy,vy,hek,hok)
+         CALL laplak3_v2(vz,vz,hek,hok)
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             CALL entrans(C1,C2,C3,C7,C8,C4,ext,1)
          rmp = 1./real(o,kind=GP)
