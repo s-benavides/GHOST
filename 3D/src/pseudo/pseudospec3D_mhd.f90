@@ -476,14 +476,14 @@
 ! and magnetic helicity
 !
       CALL energy(a,b,c,engk,1)        
-      CALL energy2(a,b,c,denk,1+hek) ! energy hyper diss
-      CALL energy2(a,b,c,henk,1-hok) ! energy hypo diss
+      CALL energy2(a,b,c,denk,hek) ! energy hyper diss
+      CALL energy2(a,b,c,henk,-hok) ! energy hypo diss
       CALL rotor3(mb,mc,c1,1) ! computing bx
       CALL rotor3(ma,mc,c2,2)
       CALL rotor3(ma,mb,c3,3)
       CALL energy(c1,c2,c3,engm,1)
-      CALL energy2(c1,c2,c3,denm,1+hem) ! mag energy hyper diss
-      CALL energy2(c1,c2,c3,henm,1-hom) ! mag energy hypo diss
+      CALL energy2(c1,c2,c3,denm,hem) ! mag energy hyper diss
+      CALL energy2(c1,c2,c3,henm,-hom) ! mag energy hypo diss
       IF (hel.eq.1) THEN
          CALL helicity(a,b,c,helk)
          CALL helicity(ma,mb,mc,helm)
