@@ -714,6 +714,7 @@
       USE fprecision
       USE commtypes
       USE kes
+      USE ali
       USE grid
       USE mpivars
 !$    USE threads
@@ -737,8 +738,10 @@
 !$omp parallel do private (k) reduction(+:dloc)
             DO j = 1,ny
                DO k = 1,nz
-                  dloc = dloc+(kn2(k,j,1))**kin*(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
+                   IF ((kn2(k,j,1).ge.tiny).and.(kn2(k,j,1).le.kmax)) THEN
+                      dloc = dloc+(kn2(k,j,1))**kin*(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
                          abs(c(k,j,1))**2)*tmp
+                   ENDIF
                END DO
             END DO
 !$omp parallel do if (iend-2.ge.nth) private (j,k) reduction(+:dloc)
@@ -746,8 +749,10 @@
 !$omp parallel do if (iend-2.lt.nth) private (k) reduction(+:dloc)
                DO j = 1,ny
                   DO k = 1,nz
+                   IF ((kn2(k,j,i).ge.tiny).and.(kn2(k,j,i).le.kmax)) THEN
                      dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                             abs(c(k,j,i))**2)*tmp
+                   ENDIF
                   END DO
                END DO
             END DO
@@ -757,8 +762,10 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k) reduction(+:dloc)
                DO j = 1,ny
                   DO k = 1,nz
+                   IF ((kn2(k,j,i).ge.tiny).and.(kn2(k,j,i).le.kmax)) THEN
                      dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                             abs(c(k,j,i))**2)*tmp
+                   ENDIF
                   END DO
                END DO
             END DO
@@ -1185,8 +1192,8 @@
 ! Computes the mean energy, enstrophy, and kinetic helicity
 !
       CALL energy(a,b,c,eng,1)  ! a^2 + b^2 + c^2
-      CALL energy2(a,b,c,denk,1+hek) ! energy hyper diss 
-      CALL energy2(a,b,c,henk,1-hok) ! energy hypo diss
+      CALL energy2(a,b,c,denk,hek) ! energy hyper diss k^(2*hek)*v^2
+      CALL energy2(a,b,c,henk,-hok) ! energy hypo diss
       IF (hel.eq.1) THEN
          CALL helicity(a,b,c,khe)
       ENDIF
