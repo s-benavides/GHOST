@@ -121,7 +121,7 @@
       END SUBROUTINE laplak3
 
 !*****************************************************************
-      SUBROUTINE laplak3_v2(a,b,hyper,hypo)
+      SUBROUTINE diss(a,b,hyper,hypo,nu,hnu)
 !-----------------------------------------------------------------
 !
 ! Computes \nabla^(2*kin)(a) 
@@ -131,6 +131,8 @@
 !     b: at the output contains the Laplacian
 !     hyper: order of laplacian for dissipation
 !     hypo: order of inverse laplacian for hypodissipation
+!     nu: viscosity
+!     hnu: hypoviscosity
 !
       USE kes
       USE grid
@@ -148,13 +150,13 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k)
          DO j = 1,ny
             DO k = 1,nz
-               b(k,j,i) = -(kk2(k,j,i)**(hyper)+kk2(k,j,i)**(-hypo))*a(k,j,i)
+               b(k,j,i) = -(nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo))*a(k,j,i)
             END DO
          END DO
       END DO
 
       RETURN
-      END SUBROUTINE laplak3_v2
+      END SUBROUTINE diss
 
 !*****************************************************************
       SUBROUTINE rotor3(a,b,c,dir)
