@@ -31,7 +31,7 @@
          DO j = 1,ny
             DO i = 1,nx
             R1(i,j,k) = 0.
-            DO ki = INT(mkdn),INT(mkup)
+            DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam1*COS(2*pi*ki*(float(j)-1)/    &
                           float(ny))+vparam2*SIN(2*pi*ki*(float(k)-1)/      &
                           float(nz)))/float(ki**2)
@@ -44,7 +44,7 @@
          DO j = 1,ny
             DO i = 1,nx
             R1(i,j,k) = 0.
-            DO ki = INT(mkdn),INT(mkup)
+            DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam0*SIN(2*pi*ki*(float(i)-1)/    &
                           float(nx))+vparam2*COS(2*pi*ki*(float(k)-1)/      &
                           float(nz)))/float(ki**2)
@@ -57,7 +57,7 @@
          DO j = 1,ny
             DO i = 1,nx
             R1(i,j,k) = 0.
-            DO ki = INT(mkdn),INT(mkup)
+            DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam0*COS(2*pi*ki*(float(i)-1)/    &
                           float(nx))+vparam1*SIN(2*pi*ki*(float(j)-1)/      &
                           float(ny)))/float(ki**2)
@@ -73,7 +73,7 @@
          C3(1,1,1) = 0.
          DO j = 2,ny/2+1
 
-            IF ((kn2(1,j,1).le.kmax/2).and.(kn2(1,j,1).gt.mkup**2)) THEN
+            IF ((kn2(1,j,1).le.kmax/2).and.(kn2(1,j,1).gt.kup**2)) THEN
                dump = 3.e5/sqrt(kk2(1,j,1))**vparam3
                phase = 2*pi*randu(seed)
                C1(1,j,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
@@ -96,7 +96,7 @@
          END DO
          DO k = 2,nz/2+1
 
-            IF ((kn2(k,1,1).le.kmax/2).and.(kn2(k,1,1).gt.mkup**2)) THEN
+            IF ((kn2(k,1,1).le.kmax/2).and.(kn2(k,1,1).gt.kup**2)) THEN
                dump = 3.e5/sqrt(kk2(k,1,1))**vparam3
                phase = 2*pi*randu(seed)
                C1(k,1,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
@@ -120,7 +120,7 @@
          DO j = 2,ny
             DO k = 2,nz/2+1
      
-            IF ((kn2(k,j,1).le.kmax/2).and.(kn2(k,j,1).gt.mkup**2)) THEN
+            IF ((kn2(k,j,1).le.kmax/2).and.(kn2(k,j,1).gt.kup**2)) THEN
                dump = 3.e5/sqrt(kk2(k,j,1))**vparam3
                phase = 2*pi*randu(seed)
                C1(k,j,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
@@ -146,7 +146,7 @@
             DO j = 1,ny
                DO k = 1,nz
 
-               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.mkup**2)) THEN
+               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.kup**2)) THEN
                   dump = 3.e5/sqrt(kk2(k,j,i))**vparam3
                   phase = 2*pi*randu(seed)
                   C1(k,j,i) = 2*(vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
@@ -168,7 +168,7 @@
             DO j = 1,ny
                DO k = 1,nz
 
-               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.mkup**2)) THEN
+               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.kup**2)) THEN
                   dump = 3.e5/sqrt(kk2(k,j,i))**vparam3
                   phase = 2*pi*randu(seed)
                   C1(k,j,i) = 2*(vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
@@ -189,14 +189,14 @@
 
       CALL rotor3(C2,C3,C7,1)
       CALL rotor3(C1,C3,C8,2)
-      CALL rotor3(C1,C2,C9,3)
-      CALL normalize(C7,C8,C9,sqrt(vparam4)*u0,0,MPI_COMM_WORLD)
+      CALL rotor3(C1,C2,C5,3)
+      CALL normalize(C7,C8,C5,sqrt(vparam4)*u0,0,MPI_COMM_WORLD)
       DO i = ista,iend
          DO j = 1,ny
             DO k = 1,nz
                vx(k,j,i) = vx(k,j,i)+C7(k,j,i)
                vy(k,j,i) = vy(k,j,i)+C8(k,j,i)
-               vz(k,j,i) = vz(k,j,i)+C9(k,j,i)
+               vz(k,j,i) = vz(k,j,i)+C5(k,j,i)
             END DO
         END DO
       END DO
