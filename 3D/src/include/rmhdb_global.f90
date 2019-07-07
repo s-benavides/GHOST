@@ -6,7 +6,7 @@
             CALL maxabs(ax,ay,az,rmq,1)
             IF (myrank.eq.0) THEN
                OPEN(1,file='injection.txt',position='append')
-               WRITE(1,FMT='(E13.6,E22.14,E22.14)') dump,eps,epm
+               WRITE(1,FMT='(E22.14,E22.14,E22.14)') dump,eps,epm
                CLOSE(1)
                OPEN(1,file='maximum.txt',position='append')
                WRITE(1,FMT='(E13.6,E13.6,E13.6)') dump,rmp,rmq
