@@ -17,12 +17,12 @@
          CALL gauge3(C11,C12,C13,C7,1)
          CALL gauge3(C11,C12,C13,C8,2)
          CALL gauge3(C11,C12,C13,C9,3)
-         CALL laplak3(vx,vx)
-         CALL laplak3(vy,vy)
-         CALL laplak3(vz,vz)
-         CALL laplak3(ax,ax)
-         CALL laplak3(ay,ay)
-         CALL laplak3(az,az)
+         CALL diss(vx,vx,hek,hok,nu,hnu)
+         CALL diss(vy,vy,hek,hok,nu,hnu)
+         CALL diss(vz,vz,hek,hok,nu,hnu)
+         CALL diss(ax,ax,hem,hom,mu,hmu)
+         CALL diss(ay,ay,hem,hom,mu,hmu)
+         CALL diss(az,az,hem,hom,mu,hmu)
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             THEN
             CALL entrans(C1,C2,C3,C16,C17,C10,ext,1)
