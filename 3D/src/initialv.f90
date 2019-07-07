@@ -39,7 +39,7 @@
             END DO
          END DO
       END DO
-      iCALL fftp3d_real_to_complex(planrc,R1,vx,MPI_COMM_WORLD)
+      CALL fftp3d_real_to_complex(planrc,R1,vx,MPI_COMM_WORLD)
       DO k = ksta,kend
          DO j = 1,ny
             DO i = 1,nx
