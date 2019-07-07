@@ -67,8 +67,8 @@
          C6(1,1,1) = 0.
          DO j = 2,n/2+1
 
-            IF ((ka2(1,j,1).le.kmax/2).and.(ka2(1,j,1).gt.kup**2)) THEN
-               dump = 3.e5/sqrt(ka2(1,j,1))**vparam3
+            IF ((kn2(1,j,1).le.kmax/2).and.(kn2(1,j,1).gt.kup**2)) THEN
+               dump = 3.e5/sqrt(kk2(1,j,1))**vparam3
                phase = 2*pi*randu(seed)
                C4(1,j,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
                C4(1,n-j+2,1) = conjg(C4(1,j,1))
@@ -90,8 +90,8 @@
          END DO
          DO k = 2,n/2+1
 
-            IF ((ka2(k,1,1).le.kmax/2).and.(ka2(k,1,1).gt.kup**2)) THEN
-               dump = 3.e5/sqrt(ka2(k,1,1))**vparam3
+            IF ((kn2(k,1,1).le.kmax/2).and.(kn2(k,1,1).gt.kup**2)) THEN
+               dump = 3.e5/sqrt(kk2(k,1,1))**vparam3
                phase = 2*pi*randu(seed)
                C4(k,1,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
                C4(n-k+2,1,1) = conjg(C4(k,1,1))
@@ -114,8 +114,8 @@
          DO j = 2,n
             DO k = 2,n/2+1
      
-            IF ((ka2(k,j,1).le.kmax/2).and.(ka2(k,j,1).gt.kup**2)) THEN
-               dump = 3.e5/sqrt(ka2(k,j,1))**vparam3
+            IF ((kn2(k,j,1).le.kmax/2).and.(kn2(k,j,1).gt.kup**2)) THEN
+               dump = 3.e5/sqrt(kk2(k,j,1))**vparam3
                phase = 2*pi*randu(seed)
                C4(k,j,1) = (vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
                C4(n-k+2,n-j+2,1) = conjg(C4(k,j,1))
@@ -140,8 +140,8 @@
             DO j = 1,n
                DO k = 1,n
 
-               IF ((ka2(k,j,i).le.kmax/2).and.(ka2(k,j,i).gt.kup**2)) THEN
-                  dump = 3.e5/sqrt(ka2(k,j,i))**vparam3
+               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.kup**2)) THEN
+                  dump = 3.e5/sqrt(kk2(k,j,i))**vparam3
                   phase = 2*pi*randu(seed)
                   C4(k,j,i) = 2*(vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
@@ -162,8 +162,8 @@
             DO j = 1,n
                DO k = 1,n
 
-               IF ((ka2(k,j,i).le.kmax/2).and.(ka2(k,j,i).gt.kup**2)) THEN
-                  dump = 3.e5/sqrt(ka2(k,j,i))**vparam3
+               IF ((kn2(k,j,i).le.kmax/2).and.(kn2(k,j,i).gt.kup**2)) THEN
+                  dump = 3.e5/sqrt(kk2(k,j,i))**vparam3
                   phase = 2*pi*randu(seed)
                   C4(k,j,i) = 2*(vparam2*COS(phase)+im*vparam1*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
