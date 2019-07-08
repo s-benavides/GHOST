@@ -1228,7 +1228,7 @@
       END SUBROUTINE hdcheck
 
 !*****************************************************************
-      SUBROUTINE spectrum(a,b,c,nmb,kin,hel)
+      SUBROUTINE spectrum(a,b,c,nmb,kin,hel,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the energy and helicity power spectrum.
@@ -1254,6 +1254,7 @@
 !          =2 skips energy spectrum computation
 !     hel: =0 skips helicity spectrum computation
 !          =1 computes the helicity spectrum
+!     odir: output directory       
 !
       USE kes
       USE grid
@@ -1267,6 +1268,7 @@
       INTEGER, INTENT(IN)          :: kin,hel
       INTEGER                      :: i
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Computes the energy and/or helicity spectra
@@ -1278,9 +1280,9 @@
       IF (kin.le.1) THEN
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='kspectrum.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'kspectrum.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='mspectrum.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'mspectrum.' // nmb // '.txt')
             ENDIF
             DO i=1,nmax/2+1
                WRITE(1,FMT='(E13.6,E23.15)') Dkk*i,.5_GP*Ek(i)/Dkk
@@ -1294,11 +1296,11 @@
       IF (hel.eq.1) THEN
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='khelicity.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'khelicity.' // nmb // '.txt')
             ELSE IF (kin.eq.0) THEN
-               OPEN(1,file='mhelicity.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'mhelicity.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='ghelicity.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'ghelicity.' // nmb // '.txt')
             ENDIF
             DO i=1,nmax/2+1
                WRITE(1,FMT='(E13.6,E23.15)') Dkk*i,Hk(i)/Dkk
@@ -1539,7 +1541,7 @@
       END SUBROUTINE spectrumc
 
 !*****************************************************************
-      SUBROUTINE spectr1d(a,nmb,spref,cmp,dir)
+      SUBROUTINE spectr1d(a,nmb,spref,cmp,dir,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the 1D longitudinal or transverse kinetic energy 
@@ -1565,6 +1567,7 @@
 !     dir  : =1 computes the 1D spectrum in k_x
 !            =2 computes the 1D spectrum in k_y
 !            =3 computes the 1D spectrum in k_z
+!     odir : output directory
 !
       USE fprecision
       USE commtypes
@@ -1587,7 +1590,7 @@
       INTEGER             :: kmn
       CHARACTER(len=3)    :: coord
       CHARACTER(len=*), INTENT(IN) :: nmb,spref
-
+      CHARACTER(len=*), INTENT(IN) :: odir
 !
 ! Sets Ek to zero
 !
@@ -1737,7 +1740,7 @@
          coord = 'xyz'
          n  = (/nx,ny,nz/)
          Dn = (/Dkx,Dky,Dkz/)
-         OPEN(1,file=trim(spref) // 'spec1d' // coord(cmp:cmp) &
+         OPEN(1,file=trim(odir) // '/' // trim(spref) // 'spec1d' // coord(cmp:cmp) &
               // coord(dir:dir) // '.' // nmb // '.txt')
          DO i=1,n(dir)/2+1
             WRITE(1,FMT='(E13.6,E23.15)') &
@@ -1750,7 +1753,7 @@
       END SUBROUTINE spectr1d
 
 !*****************************************************************
-      SUBROUTINE entrans(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE entrans(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the energy (or cross-helicity) transfer in Fourier
@@ -1779,6 +1782,7 @@
 !          =2 computes the Lorentz force work (energy transfer)
 !          =3 computes the magnetic cross-helicity transfer
 !          =4 computes the kinetic cross-helicity transfer
+!     odir : output directory
 !
       USE fprecision
       USE commtypes
@@ -1799,7 +1803,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
-
+      CHARACTER(len=*), INTENT(IN) :: odir
 !
 ! Sets Ek to zero
 !
@@ -1924,15 +1928,15 @@
                       MPI_SUM,0,MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='mtransfer.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'mtransfer.' // nmb // '.txt')
          ELSEIF (kin.eq.1) THEN
-            OPEN(1,file='ktransfer.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'ktransfer.' // nmb // '.txt')
          ELSEIF (kin.eq.2) THEN
-            OPEN(1,file='jtransfer.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'jtransfer.' // nmb // '.txt')
          ELSEIF (kin.eq.3) THEN
-            OPEN(1,file='mcrostran.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'mcrostran.' // nmb // '.txt')
          ELSEIF (kin.eq.4) THEN
-            OPEN(1,file='kcrostran.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'kcrostran.' // nmb // '.txt')
          ENDIF
          DO i=1,nmax/2+1
             WRITE(1,FMT='(E13.6,E23.15)')  Dkk*i,Ektot(i)/Dkk
@@ -1944,7 +1948,7 @@
       END SUBROUTINE entrans
 
 !*****************************************************************
-      SUBROUTINE heltrans(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE heltrans(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the helicity transfer in Fourier space in 3D.
@@ -1988,7 +1992,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
-
+      CHARACTER(len=*), INTENT(IN) :: odir
 !
 ! Sets Hk to zero
 !
@@ -2059,9 +2063,9 @@
                       MPI_SUM,0,MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='hmtransfer.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'hmtransfer.' // nmb // '.txt')
          ELSE
-            OPEN(1,file='hktransfer.' // nmb // '.txt')
+       OPEN(1,file=trim(odir) // '/' // 'hktransfer.' // nmb // '.txt')
          ENDIF
          DO i=1,nmax/2+1
             WRITE(1,FMT='(E13.6,E23.15)')  Dkk*i,Hktot(i)/Dkk
@@ -2073,7 +2077,7 @@
       END SUBROUTINE heltrans
 
 !*****************************************************************
-      SUBROUTINE pspectrum(a,fnout,svmax)
+      SUBROUTINE pspectrum(a,fnout,svmax,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the 'power' spectrum of specified scalar quantity.
@@ -2085,6 +2089,7 @@
 !     a    : input complex array
 !     fnout: output file name 
 !     svmax: number of spectral values to output
+!     odir : output directory
 !
       USE kes
       USE grid
@@ -2098,6 +2103,7 @@
       INTEGER         , INTENT(IN)                           :: svmax
       INTEGER                                                :: i,imax
       CHARACTER(len=*), INTENT(IN)                           :: fnout
+      CHARACTER(len=*), INTENT(IN)                           :: odir
 !
 ! Computes the energy and/or helicity spectra
       CALL pspectrumc(a,Ek)
@@ -2106,7 +2112,7 @@
 !
       IF (myrank.eq.0) THEN
          imax = min(svmax,nmax/2+1)
-         OPEN(1,file=trim(fnout))
+         OPEN(1,file=trim(odir) // '/' // trim(fnout))
          DO i=1,imax
             WRITE(1,FMT='(E13.6,E23.15)')  Dkk*i,Ek(i)/Dkk
          END DO
