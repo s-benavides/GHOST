@@ -25,7 +25,7 @@
         STOP
       ENDIF
 
-      vparam3 = 4.5
+      vparam3 = 3.5
 
       DO k = ksta,kend
          DO j = 1,ny
