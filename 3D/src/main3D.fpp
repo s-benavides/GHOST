@@ -274,6 +274,7 @@
       REAL(KIND=GP)    :: amach, cp2
 #endif
 #ifdef MAGFIELD_
+      DOUBLE PRECISION :: tms,tmv
       REAL(KIND=GP)    :: mu,hmu
       REAL(KIND=GP)    :: mkup,mkdn
       REAL(KIND=GP)    :: m0,a0
