@@ -382,7 +382,7 @@
       DOUBLE PRECISION    :: denk,denm,henk,henm
       DOUBLE PRECISION    :: divk,divm,asq,crh
       DOUBLE PRECISION    :: helk,helm,cur,tmp
-      DOUBLE PRECISION    :: helg
+      DOUBLE PRECISION    :: helg,jxb
       REAL(KIND=GP)                :: tmq
       REAL(KIND=GP), INTENT(IN)    :: dt
       REAL(KIND=GP), INTENT(IN)    :: t
@@ -489,6 +489,14 @@
          CALL helicity(ma,mb,mc,helm)
       ENDIF
 !
+! Computes |jxb|^2
+!
+         CALL rotor3(mb,mc,c1,1)  ! C7 = bx
+         CALL rotor3(ma,mc,c2,2)  ! C8 = by
+         CALL rotor3(ma,mb,c3,3)  ! C9 = bz
+         CALL prodre3(c1,c2,c3,c1,c2,c3)  ! curl(B)xB
+         CALL energy(c1,c2,c3,jxb,1) ! |JxB|^2
+!
 ! Computes the square vector potential, the 
 ! cross helicity, and the generalized helicity 
 ! in Hall-MHD
@@ -516,8 +524,8 @@
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,engk,engm,denk,denm,henk,henm
-   10    FORMAT( E22.14,E22.14,E22.14,E22.14,E22.14,E22.14,E22.14 )
+         WRITE(1,10) t,engk,engm,denk,denm,henk,henm,jxb
+   10    FORMAT( E22.14,E22.14,E22.14,E22.14,E22.14,E22.14,E22.14,E22.14 )
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
