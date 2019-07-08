@@ -553,7 +553,7 @@
       END SUBROUTINE mhdcheck
 
 !*****************************************************************
-      SUBROUTINE crosspec(a,b,c,d,e,f,nmb)
+      SUBROUTINE crosspec(a,b,c,d,e,f,nmb,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the cross-helicity spectrum. Normalization of the
@@ -586,6 +586,7 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: d,e,f
       INTEGER                      :: i
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Computes the cross-helicity spectrum
@@ -595,7 +596,7 @@
 ! Exports the spectrum to a file
 !
       IF (myrank.eq.0) THEN
-         OPEN(1,file='cspectrum.' // nmb // '.txt')
+         OPEN(1,file=trim(odir) // '/' // 'cspectrum.' // nmb // '.txt')
          DO i=1,nmax/2+1
             WRITE(1,FMT='(E13.6,E23.15)')  Dkk*i,Cktot(i)/Dkk
          END DO
