@@ -2084,6 +2084,79 @@
         INCLUDE CFLCOND_
 #endif
 
+! Doing global output before re-defining the forcing in case random forcing is present.
+! Every 'cstep' steps, generates external files
+! with global quantities. If mean=1 also updates
+! the mean fields.
+
+         IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
+            timec = 0
+! Making dump the time, because now mhdcheck (need to change this for
+! other global) takes in time, real number, as an input.
+#ifdef CFL_
+        dump = time
+#else
+        dump = (t-1)*dt
+#endif
+            INCLUDE GLOBALOUTPUT_
+
+            IF (mean.eq.1) THEN ! Update mean fields
+#ifdef VELOC_
+!$omp parallel do if (iend-ista.ge.nth) private (j,k)
+               DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k)
+                  DO j = 1,ny
+                     DO k = 1,nz
+                        M1(k,j,i) = M1(k,j,i)+vx(k,j,i)
+                        M2(k,j,i) = M2(k,j,i)+vy(k,j,i)
+                        M3(k,j,i) = M3(k,j,i)+vz(k,j,i)
+                     END DO
+                  END DO
+               END DO
+#endif
+#ifdef SCALAR_
+!$omp parallel do if (iend-ista.ge.nth) private (j,k)
+               DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k)
+                  DO j = 1,ny
+                     DO k = 1,nz
+                        M7(k,j,i) = M7(k,j,i)+th(k,j,i)
+                     END DO
+                  END DO
+               END DO
+#endif
+#ifdef MULTISCALAR_
+!$omp parallel do if (iend-ista.ge.nth) private (j,k)
+               DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k)
+                  DO j = 1,ny
+                     DO k = 1,nz
+                        M8 (k,j,i) = M8 (k,j,i)+th1(k,j,i)
+                        M9 (k,j,i) = M9 (k,j,i)+th2(k,j,i)
+                        M10(k,j,i) = M10(k,j,i)+th3(k,j,i)
+                     END DO
+                  END DO
+               END DO
+#endif
+#ifdef MAGFIELD_
+               CALL rotor3(ay,az,C1,1)
+               CALL rotor3(ax,az,C2,2)
+               CALL rotor3(ax,ay,C3,3)
+!$omp parallel do if (iend-ista.ge.nth) private (j,k)
+               DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k)
+                  DO j = 1,ny
+                     DO k = 1,nz
+                        M4(k,j,i) = M4(k,j,i)+vx(k,j,i)
+                        M5(k,j,i) = M5(k,j,i)+vy(k,j,i)
+                        M6(k,j,i) = M6(k,j,i)+vz(k,j,i)
+                     END DO
+                  END DO
+               END DO
+#endif
+            ENDIF
+         ENDIF
+
 ! Updates the external forcing. Every 'fsteps'
 ! the phase or amplitude is changed according 
 ! to the value of 'rand'.
@@ -2547,78 +2620,6 @@
            ENDIF
          ENDIF
 #endif
-
-! Every 'cstep' steps, generates external files 
-! with global quantities. If mean=1 also updates 
-! the mean fields.
-
-         IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
-            timec = 0
-! Making dump the time, because now mhdcheck (need to change this for
-! other global) takes in time, real number, as an input.
-#ifdef CFL_
-        dump = time
-#else
-        dump = (t-1)*dt
-#endif 
-            INCLUDE GLOBALOUTPUT_
-
-            IF (mean.eq.1) THEN ! Update mean fields
-#ifdef VELOC_
-!$omp parallel do if (iend-ista.ge.nth) private (j,k)
-               DO i = ista,iend
-!$omp parallel do if (iend-ista.lt.nth) private (k)
-                  DO j = 1,ny
-                     DO k = 1,nz
-                        M1(k,j,i) = M1(k,j,i)+vx(k,j,i)
-                        M2(k,j,i) = M2(k,j,i)+vy(k,j,i)
-                        M3(k,j,i) = M3(k,j,i)+vz(k,j,i)
-                     END DO
-                  END DO
-               END DO
-#endif
-#ifdef SCALAR_
-!$omp parallel do if (iend-ista.ge.nth) private (j,k)
-               DO i = ista,iend
-!$omp parallel do if (iend-ista.lt.nth) private (k)
-                  DO j = 1,ny
-                     DO k = 1,nz
-                        M7(k,j,i) = M7(k,j,i)+th(k,j,i)
-                     END DO
-                  END DO
-               END DO
-#endif
-#ifdef MULTISCALAR_
-!$omp parallel do if (iend-ista.ge.nth) private (j,k)
-               DO i = ista,iend
-!$omp parallel do if (iend-ista.lt.nth) private (k)
-                  DO j = 1,ny
-                     DO k = 1,nz
-                        M8 (k,j,i) = M8 (k,j,i)+th1(k,j,i)
-                        M9 (k,j,i) = M9 (k,j,i)+th2(k,j,i)
-                        M10(k,j,i) = M10(k,j,i)+th3(k,j,i)
-                     END DO
-                  END DO
-               END DO
-#endif
-#ifdef MAGFIELD_
-               CALL rotor3(ay,az,C1,1)
-               CALL rotor3(ax,az,C2,2)
-               CALL rotor3(ax,ay,C3,3)
-!$omp parallel do if (iend-ista.ge.nth) private (j,k)
-               DO i = ista,iend
-!$omp parallel do if (iend-ista.lt.nth) private (k)
-                  DO j = 1,ny
-                     DO k = 1,nz
-                        M4(k,j,i) = M4(k,j,i)+vx(k,j,i)
-                        M5(k,j,i) = M5(k,j,i)+vy(k,j,i)
-                        M6(k,j,i) = M6(k,j,i)+vz(k,j,i)
-                     END DO
-                  END DO
-               END DO
-#endif
-            ENDIF
-         ENDIF
 
 ! Every 'sstep' steps, generates external files 
 ! with the power spectrum.
