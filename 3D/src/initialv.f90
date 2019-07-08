@@ -34,7 +34,7 @@
             DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam1*COS(2*pi*ki*(float(j)-1)/    &
                           float(ny))+vparam2*SIN(2*pi*ki*(float(k)-1)/      &
-                          float(nz)))/float(ki**2)
+                          float(nz)))
             END DO
             END DO
          END DO
@@ -47,7 +47,7 @@
             DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam0*SIN(2*pi*ki*(float(i)-1)/    &
                           float(nx))+vparam2*COS(2*pi*ki*(float(k)-1)/      &
-                          float(nz)))/float(ki**2)
+                          float(nz)))
             END DO
             END DO
          END DO
@@ -60,7 +60,7 @@
             DO ki = INT(kdn),INT(kup)
                R1(i,j,k) = R1(i,j,k)+(vparam0*COS(2*pi*ki*(float(i)-1)/    &
                           float(nx))+vparam1*SIN(2*pi*ki*(float(j)-1)/      &
-                          float(ny)))/float(ki**2)
+                          float(ny)))
             END DO
             END DO
          END DO
