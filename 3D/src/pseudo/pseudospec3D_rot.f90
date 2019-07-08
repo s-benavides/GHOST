@@ -22,7 +22,7 @@
 !=================================================================
 
 !*****************************************************************
-      SUBROUTINE specpara(a,b,c,nmb,kin,hel)
+      SUBROUTINE specpara(a,b,c,nmb,kin,hel,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the reduced energy and helicity power spectrum 
@@ -55,6 +55,7 @@
 !          =0 computes the magnetic spectrum
 !     hel: =1 computes the helicity spectrum
 !          =0 skips helicity spectrum computation
+!     odir: output directory
 !
       USE fprecision
       USE commtypes
@@ -77,7 +78,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
-
+      CHARACTER(len=*), INTENT(IN) :: odir
 !
 ! Sets Ek to zero
 !
@@ -227,9 +228,9 @@
                          MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='kspecpara.' // nmb // '.txt')
+         OPEN(1,file=trim(odir) // '/' // 'kspecpara.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='mspecpara.' // nmb // '.txt')
+         OPEN(1,file=trim(odir) // '/' // 'mspecpara.' // nmb // '.txt')
             ENDIF
             DO k = 1,nz/2+1
                WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') &
@@ -317,11 +318,11 @@
                          0,MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='khelipara.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'khelipara.' // nmb // '.txt')
             ELSE IF (kin.eq.0) THEN
-               OPEN(1,file='mhelipara.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'mhelipara.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='ghelipara.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'ghelipara.' // nmb // '.txt')
             ENDIF
             DO k = 1,nz/2+1
                WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') &
@@ -335,7 +336,7 @@
       END SUBROUTINE specpara
 
 !*****************************************************************
-      SUBROUTINE specperp(a,b,c,nmb,kin,hel)
+      SUBROUTINE specperp(a,b,c,nmb,kin,hel,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the reduced energy and helicity power spectrum 
@@ -390,6 +391,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Sets Ek to zero
@@ -563,9 +565,9 @@
                          MPI_SUM,0,MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='kspecperp.' // nmb // '.txt')
+         OPEN(1,file=trim(odir) // '/' // 'kspecperp.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='mspecperp.' // nmb // '.txt')
+         OPEN(1,file=trim(odir) // '/' // 'mspecperp.' // nmb // '.txt')
             ENDIF
             DO j = 1,nmaxperp/2+1
                WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') &
@@ -668,11 +670,11 @@
                          MPI_SUM,0,MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
-               OPEN(1,file='kheliperp.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'kheliperp.' // nmb // '.txt')
             ELSE IF (kin.eq.0) THEN
-               OPEN(1,file='mheliperp.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'mheliperp.' // nmb // '.txt')
             ELSE
-               OPEN(1,file='gheliperp.' // nmb // '.txt')
+        OPEN(1,file=trim(odir) // '/' // 'gheliperp.' // nmb // '.txt')
             ENDIF
             DO j = 1,nmaxperp/2+1
                WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') Dkk*(j-1),   &
@@ -686,7 +688,7 @@
       END SUBROUTINE specperp
 
 !****************************************************************
-      SUBROUTINE entpara(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE entpara(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the energy transfer in the direction parallel 
@@ -734,6 +736,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Sets Ek to zero
@@ -859,11 +862,11 @@
                       MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='mtranpara.' // nmb // '.txt')
+      OPEN(1,file=trim(odir) // '/' // 'mtranpara.' // nmb // '.txt')
          ELSEIF (kin.eq.1) THEN
-            OPEN(1,file='ktranpara.' // nmb // '.txt')
+      OPEN(1,file=trim(odir) // '/' // 'ktranpara.' // nmb // '.txt')
          ELSE
-            OPEN(1,file='jtranpara.' // nmb // '.txt')
+      OPEN(1,file=trim(odir) // '/' // 'jtranpara.' // nmb // '.txt')
          ENDIF
          DO k = 1,nz/2+1
             WRITE(1,FMT='(E13.6,E23.15)') Dkz*(k-1),Ektot(k)*Lz
@@ -875,7 +878,7 @@
       END SUBROUTINE entpara
 
 !*****************************************************************
-      SUBROUTINE entperp(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE entperp(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the energy transfer in the direction perpendicular
@@ -923,6 +926,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Sets Ek to zero
@@ -1048,11 +1052,11 @@
                       MPI_SUM,0,MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='mtranperp.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'mtranperp.' // nmb // '.txt')
          ELSEIF (kin.eq.1) THEN
-            OPEN(1,file='ktranperp.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'ktranperp.' // nmb // '.txt')
          ELSE
-            OPEN(1,file='jtranperp.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'jtranperp.' // nmb // '.txt')
          ENDIF
          DO j = 1,nmaxperp/2+1
             WRITE(1,FMT='(E13.6,E23.15)') Dkk*(j-1),Ektot(j)/Dkk
@@ -1064,7 +1068,7 @@
       END SUBROUTINE entperp
 
 !*****************************************************************
-      SUBROUTINE heltpara(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE heltpara(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the helicity transfer in the direction parallel 
@@ -1111,6 +1115,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Sets Hk to zero
@@ -1182,9 +1187,9 @@
                       MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='hmtranpara.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'hmtranpara.' // nmb // '.txt')
          ELSE
-            OPEN(1,file='hktranpara.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'hktranpara.' // nmb // '.txt')
          ENDIF
          DO k = 1,nz/2+1
             WRITE(1,FMT='(E13.6,E23.15)') Dkz*(k-1),Hktot(k)*Lz
@@ -1196,7 +1201,7 @@
       END SUBROUTINE heltpara
 
 !*****************************************************************
-      SUBROUTINE heltperp(a,b,c,d,e,f,nmb,kin)
+      SUBROUTINE heltperp(a,b,c,d,e,f,nmb,kin,odir)
 !-----------------------------------------------------------------
 !
 ! Computes the helicity transfer in the direction perpendicular
@@ -1243,6 +1248,7 @@
       INTEGER             :: i,j,k
       INTEGER             :: kmn
       CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
 
 !
 ! Sets Hk to zero
@@ -1314,9 +1320,9 @@
                       MPI_SUM,0,MPI_COMM_WORLD,ierr)
       IF (myrank.eq.0) THEN
          IF (kin.eq.0) THEN
-            OPEN(1,file='hmtranperp.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'hmtranperp.' // nmb // '.txt')
          ELSE
-            OPEN(1,file='hktranperp.' // nmb // '.txt')
+     OPEN(1,file=trim(odir) // '/' // 'hktranperp.' // nmb // '.txt')
          ENDIF
          DO j = 1,nmaxperp/2+1
             WRITE(1,FMT='(E13.6,E23.15)') Dkk*(j-1),Hktot(j)/Dkk
