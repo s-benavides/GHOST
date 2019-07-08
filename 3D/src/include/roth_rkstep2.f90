@@ -21,12 +21,12 @@
 
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             THEN
-            CALL entrans(C1,C2,C3,C7,C8,C4,ext,1)
-            CALL entpara(C1,C2,C3,C7,C8,C4,ext,1)
-            CALL entperp(C1,C2,C3,C7,C8,C4,ext,1)
-            CALL heltrans(C1,C2,C3,C7,C8,C4,ext,1)
-            CALL heltpara(C1,C2,C3,C7,C8,C4,ext,1)
-            CALL heltperp(C1,C2,C3,C7,C8,C4,ext,1)
+            CALL entrans(C1,C2,C3,C7,C8,C4,ext,1,odir)
+            CALL entpara(C1,C2,C3,C7,C8,C4,ext,1,odir)
+            CALL entperp(C1,C2,C3,C7,C8,C4,ext,1,odir)
+            CALL heltrans(C1,C2,C3,C7,C8,C4,ext,1,odir)
+            CALL heltpara(C1,C2,C3,C7,C8,C4,ext,1,odir)
+            CALL heltperp(C1,C2,C3,C7,C8,C4,ext,1,odir)
          ENDIF
 
          rmp = 1.0_GP/(real(o,kind=GP))
