@@ -40,17 +40,17 @@
          DO k = 1,nz
 
             IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN
-               vx(k,j,i) = C1(k,j,i)+dt*(nu*vx(k,j,i)+C16(k,j,i) &
+               vx(k,j,i) = C1(k,j,i)+dt*(vx(k,j,i)+C16(k,j,i) &
               +fx(k,j,i))*rmp
-               vy(k,j,i) = C2(k,j,i)+dt*(nu*vy(k,j,i)+C17(k,j,i) &
+               vy(k,j,i) = C2(k,j,i)+dt*(vy(k,j,i)+C17(k,j,i) &
               +fy(k,j,i))*rmp
-               vz(k,j,i) = C3(k,j,i)+dt*(nu*vz(k,j,i)+C10(k,j,i) &
+               vz(k,j,i) = C3(k,j,i)+dt*(vz(k,j,i)+C10(k,j,i) &
               +fz(k,j,i))*rmp
-               ax(k,j,i) = C4(k,j,i)+dt*(mu*ax(k,j,i)+C7(k,j,i)  &
+               ax(k,j,i) = C4(k,j,i)+dt*(ax(k,j,i)+C7(k,j,i)  &
               +mx(k,j,i))*rmp
-               ay(k,j,i) = C5(k,j,i)+dt*(mu*ay(k,j,i)+C8(k,j,i)  &
+               ay(k,j,i) = C5(k,j,i)+dt*(ay(k,j,i)+C8(k,j,i)  &
               +my(k,j,i))*rmp
-               az(k,j,i) = C6(k,j,i)+dt*(mu*az(k,j,i)+C9(k,j,i)  &
+               az(k,j,i) = C6(k,j,i)+dt*(az(k,j,i)+C9(k,j,i)  &
               +mz(k,j,i))*rmp
             ELSE
                vx(k,j,i) = 0.0_GP
