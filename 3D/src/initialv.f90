@@ -190,7 +190,7 @@
       CALL rotor3(C2,C3,C7,1)
       CALL rotor3(C1,C3,C8,2)
       CALL rotor3(C1,C2,C5,3)
-      CALL normalize(C7,C8,C5,sqrt(vparam4)*u0,0,MPI_COMM_WORLD)
+      CALL normalize(C7,C8,C5,sqrt(vparam4)*u0,1,MPI_COMM_WORLD)
       DO i = ista,iend
          DO j = 1,ny
             DO k = 1,nz
@@ -200,4 +200,4 @@
             END DO
         END DO
       END DO
-      CALL normalize(vx,vy,vz,u0,0,MPI_COMM_WORLD)
+      CALL normalize(vx,vy,vz,u0,1,MPI_COMM_WORLD)
