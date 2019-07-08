@@ -1,11 +1,11 @@
 ! Spectra computed in MHD runs with B_0
 
-            CALL spectrum(vx,vy,vz,ext,1,1)
-            CALL specpara(vx,vy,vz,ext,1,1)
-            CALL specperp(vx,vy,vz,ext,1,1)
-            CALL spectrum(ax,ay,az,ext,0,1)
-            CALL specpara(ax,ay,az,ext,0,1)
-            CALL specperp(ax,ay,az,ext,0,1)
+            CALL spectrum(vx,vy,vz,ext,1,1,odir)
+            CALL specpara(vx,vy,vz,ext,1,1,odir)
+            CALL specperp(vx,vy,vz,ext,1,1,odir)
+            CALL spectrum(ax,ay,az,ext,0,1,odir)
+            CALL specpara(ax,ay,az,ext,0,1,odir)
+            CALL specperp(ax,ay,az,ext,0,1,odir)
 ! Uncomment to write 2D axisymmetric spectra
 !           CALL spec2D(vx,vy,vz,ext,odir,1,0)
 !           CALL spec2D(ax,ay,az,ext,odir,0,0)
