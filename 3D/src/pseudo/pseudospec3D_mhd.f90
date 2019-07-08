@@ -378,6 +378,7 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: ma,mb,mc
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend) :: c1,c2,c3
+      COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend) :: c4,c5,c6
       DOUBLE PRECISION    :: engk,engm
       DOUBLE PRECISION    :: denk,denm,henk,henm
       DOUBLE PRECISION    :: divk,divm,asq,crh
@@ -494,8 +495,8 @@
          CALL rotor3(mb,mc,c1,1)  ! C7 = bx
          CALL rotor3(ma,mc,c2,2)  ! C8 = by
          CALL rotor3(ma,mb,c3,3)  ! C9 = bz
-         CALL prodre3(c1,c2,c3,c1,c2,c3)  ! curl(B)xB
-         CALL energy(c1,c2,c3,jxb,1) ! |JxB|^2
+         CALL prodre3(c1,c2,c3,c4,c5,c6)  ! curl(B)xB
+         CALL energy(c4,c5,c6,jxb,1) ! |JxB|^2
 !
 ! Computes the square vector potential, the 
 ! cross helicity, and the generalized helicity 
