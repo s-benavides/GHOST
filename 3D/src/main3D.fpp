@@ -1626,30 +1626,6 @@
       ENDIF
 #endif
 
-!
-! Sets the external forcing
-
-#ifdef VELOC_
-      INCLUDE 'initialfv.f90'           ! mechanical forcing
-#endif
-#ifdef SCALAR_
-      INCLUDE 'initialfs.f90'           ! scalar source
-#endif
-#ifdef MULTISCALAR_
-      INCLUDE 'initialfms.f90'          ! multiscalar sources
-#endif
-#ifdef MAGFIELD_
-      INCLUDE 'initialfb.f90'           ! electromotive forcing
-#endif
-#ifdef ADVECT_
-#ifdef CFL_
-        timef=cort
-#else
-      timef = fstep
-#endif
-      INCLUDE 'initialfq.f90'           ! quantum thermal forcing
-#endif
-
 ! If stat=0 we start a new run.
 ! Generates initial conditions for the fields and particles.
  IC : IF (stat.eq.0) THEN
@@ -2007,6 +1983,37 @@
 
       ENDIF IC
 
+! Call CFL in case rand.eq.1 and we have to re-scale the forcing with
+! f0/sqrt(dt)
+#ifdef CFL_
+        INCLUDE CFLCOND_
+#endif
+
+!
+! Sets the external forcing
+
+#ifdef VELOC_
+      INCLUDE 'initialfv.f90'           ! mechanical forcing
+#endif
+#ifdef SCALAR_
+      INCLUDE 'initialfs.f90'           ! scalar source
+#endif
+#ifdef MULTISCALAR_
+      INCLUDE 'initialfms.f90'          ! multiscalar sources
+#endif
+#ifdef MAGFIELD_
+      INCLUDE 'initialfb.f90'           ! electromotive forcing
+#endif
+#ifdef ADVECT_
+#ifdef CFL_
+        timef=cort
+#else
+      timef = fstep
+#endif
+      INCLUDE 'initialfq.f90'           ! quantum thermal forcing
+#endif
+
+
 #ifdef ADVECT_
 !
 ! If doing a simulation with advection (for wavefunctions),
@@ -2053,6 +2060,8 @@
       END DO
       CALL fftp3d_complex_to_real(plancr,C1,vsq,MPI_COMM_WORLD)
 #endif
+
+
 
 !
 ! Time integration scheme starts here.
