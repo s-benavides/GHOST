@@ -1130,7 +1130,6 @@
       USE fprecision
       USE commtypes
       USE grid
-      USE kes
       USE mpivars
 !$    USE threads
       IMPLICIT NONE
@@ -1139,13 +1138,13 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: d,e,f
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
       DOUBLE PRECISION    :: eng,henk,denk,pot,khe
-      DOUBLE PRECISION    :: div,tmp,tmr
+      DOUBLE PRECISION    :: div,tmp
       REAL(KIND=GP)       :: dt
       REAL(KIND=GP)       :: tmq
       REAL(KIND=GP), INTENT(IN) :: t
       INTEGER, INTENT(IN) :: hel,chk
       INTEGER, INTENT(IN) :: hek,hok
-      INTEGER             :: i,j,k,ki
+      INTEGER             :: i,j,k
 
       div = 0.0D0
       tmp = 0.0D0
@@ -1205,61 +1204,13 @@
 ! Computes the energy injection rate
 !
       CALL cross(a,b,c,d,e,f,pot,1)
-
-!
-! Computes (a,b,c)**2 at k_f
-!
-
-      tmp = 0.0D0
-      tmq = 1.0_GP/ &
-            (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
-
-         IF (ista.eq.1) THEN
-            DO j = 1,ny
-               DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,1))/Dkk+.501)
-                  IF ((ki.gt.kdn).and.(ki.le.kup)) THEN
-                  tmp = tmp+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
-                         abs(c(k,j,1))**2)*tmq
-                  ENDIF
-               END DO
-            END DO
-            DO i = 2,iend
-               DO j = 1,ny
-                  DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.kdn).and.(ki.le.kup)) THEN
-                     tmp = tmp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                            abs(c(k,j,i))**2)*tmq
-                  ENDIF
-                  END DO
-               END DO
-            END DO
-          ELSE
-            DO i = ista,iend
-               DO j = 1,ny
-                  DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.kdn).and.(ki.le.kup)) THEN
-                     tmp = tmp + 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                            abs(c(k,j,i))**2)*tmq
-                   ENDIF
-                END DO
-               END DO
-            END DO
-          ENDIF
-
-     CALL MPI_REDUCE(tmp,tmr,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-                      MPI_COMM_WORLD,ierr)
-
-
 !
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,denk,henk,pot,tmr
-   10    FORMAT( E25.18,E25.18,E25.18,E25.18,E26.18,E25.18 )
+         WRITE(1,10) t,eng,denk,henk,pot
+   10    FORMAT( E25.18,E25.18,E25.18,E25.18,E26.18 )
          CLOSE(1)
          IF (hel.eq.1) THEN
             OPEN(1,file='helicity.txt',position='append')
