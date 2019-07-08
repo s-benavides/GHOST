@@ -86,8 +86,7 @@
                   DO k = 1,nz
                   ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
                   IF ((ki.gt.mkdn).and.(ki.le.mkup)) THEN
-                     tmp = tmp + 2*(abs(c1(k,j,i))**2+abs(c2(k,j,i))**2+
-&
+                     tmp = tmp + 2*(abs(c1(k,j,i))**2+abs(c2(k,j,i))**2+ &
                             abs(c3(k,j,i))**2)*tmq
                    ENDIF
                 END DO
