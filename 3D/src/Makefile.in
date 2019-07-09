@@ -12,6 +12,9 @@ ORD      = 4
 
 # SOLVER:  (read the file SOLVERS for a list of options)
 #SOLVER   = HD
+#SOLVER = ROTH
+#SOLVER = MHD
+#SOLVER = MHDB
 SOLVER   = RMHDB
 
 # PRECISION: (SINGLE or DOUBLE)
