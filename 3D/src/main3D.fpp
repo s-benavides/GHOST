@@ -2171,12 +2171,10 @@
             IF (rand.eq.1) THEN      ! randomizes phases
 
 #ifdef VELOC_
-               IF (myrank.eq.0) phase = 2*pi*randu(seed)
-               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-               cdump = COS(phase)+im*SIN(phase)
-	       CALL phaseshift(fx,cdump)
-	       CALL phaseshift(fy,cdump)
-	       CALL phaseshift(fz,cdump)
+        ! Creates a new random forcing. 'initialfv.f90'
+        ! should be chosen to generate a forcing with random
+        ! phases ('initialfv.f90_patterson' is recommended).
+               INCLUDE 'initialfv.f90'
 #endif
 #if defined(SCALAR_) || defined(MULTISCALAR_)
                IF (myrank.eq.0) phase = 2*pi*randu(seed)
@@ -2192,12 +2190,10 @@
 	       CALL phaseshift(fs3,cdumr)
 #endif
 #ifdef MAGFIELD_
-               IF (myrank.eq.0) phase = 2*pi*randu(seed)
-               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-               cdumq = corr*cdump+(1-corr)*(COS(phase)+im*SIN(phase))
-	       CALL phaseshift(mx,cdump)
-	       CALL phaseshift(my,cdump)
-	       CALL phaseshift(mz,cdump)
+        ! Creates a new random forcing. 'initialfb.f90'
+        ! should be chosen to generate a forcing with random
+        ! phases ('initialfb.f90_patterson' is recommended).
+               INCLUDE 'initialfb.f90'
 #endif
 #ifdef QFORCE_
                INCLUDE 'initialfq.f90'  ! generates a new forcing function
