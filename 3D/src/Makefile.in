@@ -14,8 +14,8 @@ ORD      = 4
 #SOLVER   = HD
 #SOLVER = ROTH
 #SOLVER = MHD
-#SOLVER = MHDB
-SOLVER   = RMHDB
+SOLVER = MHDB
+#SOLVER   = RMHDB
 
 # PRECISION: (SINGLE or DOUBLE)
 PRECISION= DOUBLE
@@ -53,7 +53,8 @@ PARTICLES = no
 # FFTWxDIR contains the path to the FFTW libraries
 FFTP     = fftp-3
 FFTW2DIR = /opt/ohpc/pub/libs/gnu7/fftw/2.1.5
-FFTW3DIR = /home/santiago_b/FFTW3_GHOST
+# FFTW3DIR = /home/santiago_b/FFTW3_GHOST   # For MIT's engaging cluster
+FFTW3DIR = FFTW3_BASE			    # For Flatiron's rusty cluster
 
 # IKIND    4 in 32 bits machines, 8 in 64 bits machines
 # CSIZE    8 if L1 cache is <= 64 kb, 16 if L1 cache is 128 kb
@@ -69,7 +70,8 @@ APPEND   = _
 
 # Fortran compiler and MPI distribution (see below)
 CUCOMPILER = NVIDIA
-COMPILER   = GNU
+# COMPILER   = GNU 			    # For MIT's engaging cluster
+COMPILER   = INTEL			    # For Flatiron's rusty cluster
 MPI        = OPEN
 
 #****************************************************************************
@@ -110,9 +112,9 @@ ABSOFT_OMP    =
 TARGET_ABSOFT =
 #
 # INTEL compiler (use UNDER=1 with gcc compiler <4.x)
-CPP_INTEL     = /usr/bin/cpp -traditional-cpp
-FC_INTEL      = /share/apps/intel/bin/ifort
-CC_INTEL      = /share/apps/intel/bin/icc
+CPP_INTEL     = cpp -traditional-cpp
+FC_INTEL      = /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/bin/intel64/ifort
+CC_INTEL      = /cm/shared/sw/pkg/vendor/intel-pstudio/2017-4/compilers_and_libraries_2017.4.196/linux/bin/intel64/icc
 FFLAGS_INTEL  = -O3 -no-prec-div -fp-model fast=2 -align
 FPSPEC_INTEL  = -O3 -no-prec-div -fp-model fast=2 -align
 CFLAGS_INTEL  = -O3 -no-prec-div -fp-model fast=2 -align
@@ -170,12 +172,20 @@ MPIINC_MPICH  = -I/opt/mpich2-1.0.5/include
 MPILIB_MPICH  = -L/opt/mpich2-1.0.5/lib
 MPILD_MPICH   = -lmpich -lmpichf90 -lfmpich -lpthread -lrt -lmpich \
   -lpthread -lrt -luuid
-#
+
 # OPENMPI (OPEN)
-MPIINC_OPEN = -I/cm/shared/engaging/openmpi/2.0.3/include \
-  -I/cm/shared/engaging/openmpi/2.0.3/lib
-MPILIB_OPEN = -L/cm/shared/engaging/openmpi/2.0.3/lib
-MPILD_OPEN = -pthread -Wl,-rpath -Wl,/cm/shared/engaging/openmpi/2.0.3/lib -Wl,--enable-new-dtags -lmpi_usempi -lmpi_mpifh -lmpi
+
+# For MIT's engaging cluster
+# MPIINC_OPEN = -I/cm/shared/engaging/openmpi/2.0.3/include \
+#   -I/cm/shared/engaging/openmpi/2.0.3/lib
+# MPILIB_OPEN = -L/cm/shared/engaging/openmpi/2.0.3/lib
+# MPILD_OPEN = -pthread -Wl,-rpath -Wl,/cm/shared/engaging/openmpi/2.0.3/lib -Wl,--enable-new-dtags -lmpi_usempi -lmpi_mpifh -lmpi
+
+# For flatiron's rusty cluster
+MPIINC_OPEN = -I/cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm17.11/include \
+   -I/cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm17.11/lib
+MPILIB_OPEN = -L/cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm17.11/lib
+MPILD_OPEN = -pthread -Wl,-rpath -Wl,/cm/shared/sw/pkg/devel/openmpi/2.1.6-hfi-slurm17.11/lib -Wl,--enable-new-dtags -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi
 
 #
 # MPICH-GM (GM)
