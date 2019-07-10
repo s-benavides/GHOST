@@ -147,7 +147,7 @@
       CALL rotor3(C1,C3,fy,2)
       CALL rotor3(C1,C2,fz,3)
       IF (rand.eq.1) THEN
-              dump = f0/sqrt(dt)
+              dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
       ELSE 
               dump = f0
       ENDIF
