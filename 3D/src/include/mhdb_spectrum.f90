@@ -7,7 +7,7 @@
             CALL specpara(ax,ay,az,ext,0,1,odir)
             CALL specperp(ax,ay,az,ext,0,1,odir)
 ! Uncomment to write 2D axisymmetric spectra
-!           CALL spec2D(vx,vy,vz,ext,odir,1,0)
+           CALL spec2D(vx,vy,vz,ext,odir,1,0)
 !           CALL spec2D(ax,ay,az,ext,odir,0,0)
 ! Uncomment to save data for spatio-temporal spectra
 !           CALL write_fourier(vx,'vx',ext,odir)
