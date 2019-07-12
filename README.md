@@ -1,5 +1,23 @@
 # GHOST
 
+%%%%%
+Addition notes by Santiago Benavides (santib@mit.edu)
+
+All changes _only_ apply to solvers:
+* HD
+* ROTH
+* MHD
+* MHDB
+* RMHDB
+
+Changes:
+* Added CFL condition.
+* Added hyper- and hypo-dissipation.
+* Modified 'initialfv.f90_random' to include the possibility of constant injection of energy (of amplitude f0) if 'rand' = 1.
+* Modified some of the global outputs.
+
+%%%%%
+
 GHOST (the Geophysical High-Order Suite for Turbulence) is an accurate and highly scalable pseudospectral code that solves a variety of PDEs often encountered in studies of turbulent flows. It is mainly developed by Pablo Mininni and Duane Rosenberg, with contributions from many users. The code uses a hybrid parallelization method combining MPI and OpenMP (GHOST also has support for GPUs using CUDA). This allows the code to run efficiently in laptops and small clusters, as well as to scale up to over 100,000 CPU cores in production runs in supercomputers. The hybrid parallelization method used in GHOST was recognized by two awards: an NCAR/CISL award, and the best paper award (technology track) at the TeraGrid 2010 conference.
 
 The stable release found in the "master" branch supports cubic periodic domains with NxNxN grid points (in three-dimensions). For elongated domains with arbitrary linear sizes, and arbitrary resolutions in each spatial direction, check out the "pre-release-2" branch of GHOST.
