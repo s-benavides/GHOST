@@ -291,6 +291,9 @@
 #ifdef ROTATION_
       REAL(KIND=GP)    :: omegax,omegay,omegaz
 #endif
+#if defined(UNIFORMB_) && defined(ROTATION_)
+      DOUBLE PRECISION :: helm,chel
+#endif
 #ifdef WAVEFUNCTION_
       REAL(KIND=GP)    :: cspeed,lambda,rho0,kttherm
       REAL(KIND=GP)    :: zparam0,zparam1,zparam2,zparam3,zparam4
