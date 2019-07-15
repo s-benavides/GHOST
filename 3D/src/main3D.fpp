@@ -2625,7 +2625,7 @@
             times = 0
             sind = sind+1
             WRITE(ext, fmtext) sind
-#ifdef CLF_
+#ifdef CFL_
            IF (myrank.eq.0) THEN
                 OPEN(1,file='time_spec.txt',position='append')
                 WRITE(1,FMT='(A4,F12.6)') ext,time
