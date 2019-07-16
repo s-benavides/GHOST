@@ -97,12 +97,20 @@
                       MPI_COMM_WORLD,ierr)
 !
 ! Computes the hybrid helicity:
-!
-            CALL helicity(ax,ay,az,helm)  !computes magnetic helicity
-            CALL cross(vx,vy,vz,c1,c2,c3,chel,1)   ! computes cross helicity
-            tmp = sqrt((bx0)**2+(by0)**2+(bz0)**2) 
-            tmp = omegaz/tmp      ! computes 'sigma' = Omega/B0
-            tmp = chel - tmp*helm   ! computes the hybrid helicity. 
+!           
+                tmp = sqrt((bx0)**2+(by0)**2+(bz0)**2) 
+            IF ((tmp>0).and.(omegaz>0)) THEN
+                CALL helicity(ax,ay,az,helm)  !computes magnetic helicity
+                CALL cross(vx,vy,vz,c1,c2,c3,chel,1)   ! computes cross helicity
+                tmp = omegaz/tmp      ! computes 'sigma' = Omega/B0
+                tmp = chel - tmp*helm   ! computes the hybrid helicity. 
+              IF (myrank.eq.0) THEN
+               OPEN(1,file='hybridhel.txt',position='append')
+               WRITE(1,FMT='(E25.18,E25.18)') dump,tmp
+               CLOSE(1)
+              ENDIF
+            ENDIF 
+
             IF (myrank.eq.0) THEN
                OPEN(1,file='uf.txt',position='append')
                WRITE(1,FMT='(E25.18,E25.18,E25.18)') dump,tmr,tms
@@ -112,8 +120,5 @@
                CLOSE(1)
                OPEN(1,file='maximum.txt',position='append')
                WRITE(1,FMT='(E13.6,E13.6,E13.6)') dump,rmp,rmq
-               CLOSE(1)
-               OPEN(1,file='hybridhel.txt',position='append')
-               WRITE(1,FMT='(E25.18,E25.18)') dump,tmp
                CLOSE(1)
             ENDIF
