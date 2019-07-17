@@ -1,0 +1,162 @@
+! External mechanical forcing.
+! This file contains the expression used for the external
+! mechanical forcing. You can use temporary real arrays
+! R1-R3 of size (1:n,1:n,ksta:kend) and temporary complex
+! arrays C1-C8 of size (n,n,ista:iend) to do intermediate
+! computations. The variable f0 should control the global
+! amplitude of the forcing, and variables fparam0-9 can be
+! used to control the amplitudes of individual terms. At the
+! end, the three components of the forcing in spectral
+! space should be stored in the arrays fx, fy, and fz.
+
+! Superposition of harmonic modes with random phases
+!     kdn : minimum wave number
+!     kup : maximum wave number
+
+! Notes:
+! - 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Pick random wavenumber of length close to kup:
+      IF (myrank.eq.0) THEN
+        rmp = pi*randu(seed) 
+        rmq = pi*randu(seed) 
+        kfx = floor(kup*COS(rmp)*SIN(rmq)+0.5)
+        kfy = floor(kup*SIN(rmp)*SIN(rmq)+0.5)
+        kfz = floor(kup*COS(rmq)+0.5)
+        print*, "DBG (kx,ky,kz),",kfx,kfy,kfz," |k| = ",sqrt(kfx**2+kfy**2+kfz**2)
+      ENDIF
+        CALL MPI_BCAST(kfx,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+        CALL MPI_BCAST(kfy,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+        CALL MPI_BCAST(kfz,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+
+      IF (ista.eq.1) THEN
+      ! Sets largest mode forcing to zero
+         fx(1,1,1) = 0.
+         fy(1,1,1) = 0.
+         fz(1,1,1) = 0. 
+         ! cycles through (1,j,1), have to manually set a(-k) = cong(a(k))  
+         DO j = 2,ny/2+1
+               IF ((kx(1).eq.kfx).and.&
+                        (ky(j).eq.kfy).and.(kz(1).eq.kfz)) THEN
+               fx(1,j,1) = COS(phase)+im*SIN(phase)
+               fx(1,ny-j+2,1) = conjg(fx(1,j,1))
+               phase = 2*pi*randu(seed)
+               fy(1,j,1) = COS(phase)+im*SIN(phase)
+               fy(1,ny-j+2,1) = conjg(fy(1,j,1))
+               phase = 2*pi*randu(seed)
+               fz(1,j,1) = COS(phase)+im*SIN(phase)
+               fz(1,ny-j+2,1) = conjg(fz(1,j,1))
+            ELSE
+               fx(1,j,1) = 0.
+               fx(1,ny-j+2,1) = 0.
+               fy(1,j,1) = 0.
+               fy(1,ny-j+2,1) = 0.
+               fz(1,j,1) = 0.
+               fz(1,ny-j+2,1) = 0.
+            ENDIF
+
+         END DO
+         ! cycles through (k,1,1)
+         DO k = 2,nz/2+1
+               IF ((kx(1).eq.kfx).and.&
+                        (ky(1).eq.kfy).and.(kz(k).eq.kfz)) THEN
+               phase = 2*pi*randu(seed)
+               fx(k,1,1) = COS(phase)+im*SIN(phase)
+               fx(nz-k+2,1,1) = conjg(fx(k,1,1))
+               phase = 2*pi*randu(seed)
+               fy(k,1,1) = COS(phase)+im*SIN(phase)
+               fy(nz-k+2,1,1) = conjg(fy(k,1,1))
+               phase = 2*pi*randu(seed)
+               fz(k,1,1) = COS(phase)+im*SIN(phase)
+               fz(nz-k+2,1,1) = conjg(fz(k,1,1))
+            ELSE
+               fx(k,1,1) = 0.
+               fx(nz-k+2,1,1) = 0.
+               fy(k,1,1) = 0.
+               fy(nz-k+2,1,1) = 0.
+               fz(k,1,1) = 0.
+               fz(nz-k+2,1,1) = 0.
+            ENDIF
+
+         END DO
+         ! cycles through (k,j,1)
+         DO j = 2,ny
+            DO k = 2,nz/2+1
+               IF ((kx(1).eq.kfx).and.&
+                        (ky(j).eq.kfy).and.(kz(k).eq.kfz)) THEN     
+               phase = 2*pi*randu(seed)
+               fx(k,j,1) = COS(phase)+im*SIN(phase)
+               fx(nz-k+2,ny-j+2,1) = conjg(fx(k,j,1))
+               phase = 2*pi*randu(seed)
+               fy(k,j,1) = COS(phase)+im*SIN(phase)
+               fy(nz-k+2,ny-j+2,1) = conjg(fy(k,j,1))
+               phase = 2*pi*randu(seed)
+               fz(k,j,1) = COS(phase)+im*SIN(phase)
+               fz(nz-k+2,ny-j+2,1) = conjg(fz(k,j,1))
+            ELSE
+               fx(k,j,1) = 0.
+               fx(nz-k+2,ny-j+2,1) = 0.
+               fy(k,j,1) = 0.
+               fy(nz-k+2,ny-j+2,1) = 0.
+               fz(k,j,1) = 0.
+               fz(nz-k+2,ny-j+2,1) = 0.
+            ENDIF
+
+            END DO
+         END DO
+         ! finally cycles through (k,j,i) 
+         DO i = 2,iend
+            DO j = 1,ny
+               DO k = 1,nz
+
+               IF (((kx(i).eq.kfx).or.(kx(i).eq.(-kfx))).and.&
+                        (ky(j).eq.kfy).and.(kz(k).eq.kfz)) THEN
+                  phase = 2*pi*randu(seed)
+                  fx(k,j,i) = 2*(COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fy(k,j,i) = 2*(COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fz(k,j,i) = 2*(COS(phase)+im*SIN(phase))
+               ELSE
+                  fx(k,j,i) = 0.
+                  fy(k,j,i) = 0.
+                  fz(k,j,i) = 0.
+               ENDIF
+
+               END DO
+            END DO
+         END DO
+      ELSE
+         DO i = ista,iend
+            DO j = 1,ny
+               DO k = 1,nz
+                 
+               IF (((kx(i).eq.kfx).or.(kx(i).eq.(-kfx))).and.&
+                        (ky(j).eq.kfy).and.(kz(k).eq.kfz)) THEN
+                  phase = 2*pi*randu(seed)
+                  fx(k,j,i) =  2*(COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fy(k,j,i) = 2*(COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fz(k,j,i) = 2*(COS(phase)+im*SIN(phase))
+               ELSE
+                  fx(k,j,i) = 0.
+                  fy(k,j,i) = 0.
+                  fz(k,j,i) = 0.
+               ENDIF
+
+               END DO
+            END DO
+        END DO
+      ENDIF
+
+      IF (rand.eq.1) THEN
+              dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
+      ELSE 
+              dump = f0
+      ENDIF
+      CALL normalize(fx,fy,fz,dump,1,MPI_COMM_WORLD)
+
+      CALL cross(fx,fy,fz,fx,fy,fz,tmp,0)
+      if myrank.eq.0 print*,"DBG, |curl(f)|**2,"tmp
