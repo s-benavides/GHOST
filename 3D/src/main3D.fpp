@@ -230,7 +230,7 @@
       REAL(KIND=GP)    :: dump
       REAL(KIND=GP)    :: stat
       REAL(KIND=GP)    :: f0,u0
-      REAL(KIND=GP)    :: phase,ampl,cort
+      REAL(KIND=GP)    :: phase,ampl,cort,kfx,kfy,kfz
       REAL(KIND=GP)    :: fparam0,fparam1,fparam2,fparam3,fparam4
       REAL(KIND=GP)    :: fparam5,fparam6,fparam7,fparam8,fparam9
       REAL(KIND=GP)    :: vparam0,vparam1,vparam2,vparam3,vparam4
