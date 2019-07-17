@@ -72,7 +72,7 @@
 
          END DO
          ! cycles through (k,j,1)
-         DO j = 2,ny
+         DO j = 2,ny/2+1
             DO k = 2,nz/2+1
      
             IF ((kk2(k,j,1).le.kup**2).and.(kk2(k,j,1).ge.kdn**2)) THEN
