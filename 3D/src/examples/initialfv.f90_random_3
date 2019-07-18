@@ -1,0 +1,190 @@
+! External mechanical forcing.
+! This file contains the expression used for the external
+! mechanical forcing. You can use temporary real arrays
+! R1-R3 of size (1:n,1:n,ksta:kend) and temporary complex
+! arrays C1-C8 of size (n,n,ista:iend) to do intermediate
+! computations. The variable f0 should control the global
+! amplitude of the forcing, and variables fparam0-9 can be
+! used to control the amplitudes of individual terms. At the
+! end, the three components of the forcing in spectral
+! space should be stored in the arrays fx, fy, and fz.
+
+! Notes:
+! - 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! Pick random wavenumber of length close to kup:
+      IF (myrank.eq.0) THEN
+        rmp = 2*pi*randu(seed) 
+        rmq = pi*randu(seed) 
+        kfx = floor(kup*COS(rmp)*SIN(rmq)+0.5)
+        kfy = floor(kup*SIN(rmp)*SIN(rmq)+0.5)
+        kfz = floor(kup*COS(rmq)+0.5)
+      ENDIF
+        CALL MPI_BCAST(kfx,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+        CALL MPI_BCAST(kfy,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+        CALL MPI_BCAST(kfz,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+        
+        !if (myrank.eq.0) print*,"kx,ky,kz",kfx,kfy,kfz
+
+      ! Set previous forcing to zero.
+       DO i = ista,iend
+            DO j = 1,ny
+               DO k = 1,nz
+                fx(k,j,i) = 0.
+                fy(k,j,i) = 0.
+                fz(k,j,i) = 0.
+               END DO
+            END DO
+        END DO
+
+      IF (ista.eq.1) THEN
+      ! Sets largest mode forcing to zero
+         fx(1,1,1) = 0.
+         fy(1,1,1) = 0.
+         fz(1,1,1) = 0. 
+         ! cycles through (1,j,1), have to manually set a(-k) = cong(a(k))  
+         DO j = 2,ny/2+1
+            IF (((abs(kx(1)).ge.(abs(kfx)-1)).and.(abs(kx(1)).le.(abs(kfx)+1)))&
+            .and.((abs(ky(j)).ge.(abs(kfy)-1)).and.(abs(ky(j)).le.(abs(kfy)+1)))&
+            .and.((abs(kz(1)).ge.(abs(kfz)-1)).and.(abs(kz(1)).le.(abs(kfz)+1))))&
+            THEN
+               phase = 2*pi*randu(seed)
+               fx(1,j,1) = COS(phase)+im*SIN(phase)
+               fx(1,ny-j+2,1) = conjg(fx(1,j,1))
+               phase = 2*pi*randu(seed)
+               fy(1,j,1) = COS(phase)+im*SIN(phase)
+               fy(1,ny-j+2,1) = conjg(fy(1,j,1))
+               phase = 2*pi*randu(seed)
+               fz(1,j,1) = COS(phase)+im*SIN(phase)
+               fz(1,ny-j+2,1) = conjg(fz(1,j,1))
+              !  print*,"(1,j,1) loop, k:",sqrt(kk2(1,j,1)),"myrank",myrank,&
+              !"kx,ky,kz",kx(1),ky(j),kz(1)
+            ELSE
+               fx(1,j,1) = 0.
+               fx(1,ny-j+2,1) = 0.
+               fy(1,j,1) = 0.
+               fy(1,ny-j+2,1) = 0.
+               fz(1,j,1) = 0.
+               fz(1,ny-j+2,1) = 0.
+            ENDIF
+
+         END DO
+         ! cycles through (k,1,1)
+         DO k = 2,nz/2+1
+            IF (((abs(kx(1)).ge.(abs(kfx)-1)).and.(abs(kx(1)).le.(abs(kfx)+1)))&
+            .and.((abs(ky(1)).ge.(abs(kfy)-1)).and.(abs(ky(1)).le.(abs(kfy)+1)))&
+            .and.((abs(kz(k)).ge.(abs(kfz)-1)).and.(abs(kz(k)).le.(abs(kfz)+1))))&
+            THEN
+
+               phase = 2*pi*randu(seed)
+               fx(k,1,1) = COS(phase)+im*SIN(phase)
+               fx(nz-k+2,1,1) = conjg(fx(k,1,1))
+               phase = 2*pi*randu(seed)
+               fy(k,1,1) = COS(phase)+im*SIN(phase)
+               fy(nz-k+2,1,1) = conjg(fy(k,1,1))
+               phase = 2*pi*randu(seed)
+               fz(k,1,1) = COS(phase)+im*SIN(phase)
+               fz(nz-k+2,1,1) = conjg(fz(k,1,1))
+              !  print*,"(k,1,1) loop, k:",sqrt(kk2(k,1,1)),"myrank",myrank,&
+              !"kx,ky,kz",kx(1),ky(1),kz(k)
+            ELSE
+               fx(k,1,1) = 0.
+               fx(nz-k+2,1,1) = 0.
+               fy(k,1,1) = 0.
+               fy(nz-k+2,1,1) = 0.
+               fz(k,1,1) = 0.
+               fz(nz-k+2,1,1) = 0.
+            ENDIF
+
+         END DO
+         ! cycles through (k,j,1)
+         DO j = 2,ny/2+1
+            DO k = 2,nz/2+1
+            IF (((abs(kx(1)).ge.(abs(kfx)-1)).and.(abs(kx(1)).le.(abs(kfx)+1)))&
+            .and.((abs(ky(j)).ge.(abs(kfy)-1)).and.(abs(ky(j)).le.(abs(kfy)+1)))&
+            .and.((abs(kz(k)).ge.(abs(kfz)-1)).and.(abs(kz(k)).le.(abs(kfz)+1))))&
+            THEN
+
+               phase = 2*pi*randu(seed)
+               fx(k,j,1) = COS(phase)+im*SIN(phase)
+               fx(nz-k+2,ny-j+2,1) = conjg(fx(k,j,1))
+               phase = 2*pi*randu(seed)
+               fy(k,j,1) = COS(phase)+im*SIN(phase)
+               fy(nz-k+2,ny-j+2,1) = conjg(fy(k,j,1))
+               phase = 2*pi*randu(seed)
+               fz(k,j,1) = COS(phase)+im*SIN(phase)
+               fz(nz-k+2,ny-j+2,1) = conjg(fz(k,j,1))
+              !  print*,"(k,j,1) loop, k:",sqrt(kk2(k,j,1)),"myrank",myrank,&
+              !"kx,ky,kz",kx(1),ky(j),kz(k)
+            ELSE
+               fx(k,j,1) = 0.
+               fx(nz-k+2,ny-j+2,1) = 0.
+               fy(k,j,1) = 0.
+               fy(nz-k+2,ny-j+2,1) = 0.
+               fz(k,j,1) = 0.
+               fz(nz-k+2,ny-j+2,1) = 0.
+            ENDIF
+
+            END DO
+         END DO
+         ! finally cycles through (k,j,i) 
+         DO i = 2,iend
+            DO j = 1,ny
+               DO k = 1,nz
+            IF (((abs(kx(i)).ge.(abs(kfx)-1)).and.(abs(kx(i)).le.(abs(kfx)+1)))&
+            .and.((abs(ky(j)).ge.(abs(kfy)-1)).and.(abs(ky(j)).le.(abs(kfy)+1)))&
+            .and.((abs(kz(k)).ge.(abs(kfz)-1)).and.(abs(kz(k)).le.(abs(kfz)+1))))&
+            THEN
+
+                  phase = 2*pi*randu(seed)
+                  fx(k,j,i) = (COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fy(k,j,i) = (COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fz(k,j,i) = (COS(phase)+im*SIN(phase))
+             ! print*,"(k,j,i) ista=1 loop, k:",sqrt(kk2(k,j,i)),"myrank",myrank,&
+             ! "kx,ky,kz",kx(i),ky(j),kz(k)
+               ELSE
+                  fx(k,j,i) = 0.
+                  fy(k,j,i) = 0.
+                  fz(k,j,i) = 0.
+               ENDIF
+
+               END DO
+            END DO
+         END DO
+      ELSE
+         DO i = ista,iend
+            DO j = 1,ny
+               DO k = 1,nz
+            IF (((abs(kx(i)).ge.(abs(kfx)-1)).and.(abs(kx(i)).le.(abs(kfx)+1)))&
+            .and.((abs(ky(j)).ge.(abs(kfy)-1)).and.(abs(ky(j)).le.(abs(kfy)+1)))&
+            .and.((abs(kz(k)).ge.(abs(kfz)-1)).and.(abs(kz(k)).le.(abs(kfz)+1))))&
+            THEN
+
+                  phase = 2*pi*randu(seed)
+                  fx(k,j,i) =  (COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fy(k,j,i) =(COS(phase)+im*SIN(phase))
+                  phase = 2*pi*randu(seed)
+                  fz(k,j,i) = (COS(phase)+im*SIN(phase))
+           ! print*,"(k,j,i) ista=1 loop, k:",sqrt(kk2(k,j,i)),"myrank",myrank,&
+           !   "kx,ky,kz",kx(i),ky(j),kz(k)
+               ELSE
+                  fx(k,j,i) = 0.
+                  fy(k,j,i) = 0.
+                  fz(k,j,i) = 0.
+               ENDIF
+
+               END DO
+            END DO
+        END DO
+      ENDIF
+
+      IF (rand.eq.1) THEN
+              dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
+      ELSE 
+              dump = f0
+      ENDIF
+      CALL normalize(fx,fy,fz,dump,1,MPI_COMM_WORLD)
