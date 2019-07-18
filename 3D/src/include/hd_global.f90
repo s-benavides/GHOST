@@ -1,6 +1,6 @@
 ! Global quantities computed in HD runs
 
-            CALL hdcheck(vx,vy,vz,fx,fy,fz,hek,hok,dump,dt,1,0)
+            CALL hdcheck(vx,vy,vz,fx,fy,fz,hek,hok,dump,dt,1,1)
             CALL maxabs(vx,vy,vz,rmp,0)
 !
 ! Computes |u|^2 at k_f.
