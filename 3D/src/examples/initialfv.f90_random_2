@@ -100,7 +100,7 @@
                 
          END DO
          ! cycles through (k,j,1)
-         DO j = 2,ny/2+1
+         DO j = 2,ny
             DO k = 2,nz/2+1
                IF ((kx(1).eq.kfx).and.((ky(j).eq.kfy).or.(ky(j).eq.&
                (-kfy))).and.((kz(k).eq.kfz).or.(kz(k).eq.(-kfz)))) THEN
