@@ -13,7 +13,7 @@
             DO j = 1,ny
                DO k = 1,nz
                   ki = int(sqrt(kk2(k,j,1))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2))).and.(ki.le.(kup*sqrt(2)))) THEN
+                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
                   tmp = tmp+(abs(vx(k,j,1))**2+abs(vy(k,j,1))**2+ &
                          abs(vz(k,j,1))**2)*tmq
                   ENDIF
@@ -23,7 +23,7 @@
                DO j = 1,ny
                   DO k = 1,nz
                   ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2))).and.(ki.le.(kup*sqrt(2)))) THEN
+                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
                      tmp = tmp+2*(abs(vx(k,j,i))**2+abs(vy(k,j,i))**2+ &
                             abs(vz(k,j,i))**2)*tmq
                   ENDIF
@@ -35,7 +35,7 @@
                DO j = 1,ny
                   DO k = 1,nz
                   ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2))).and.(ki.le.(kup*sqrt(2)))) THEN
+                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
                      tmp = tmp + 2*(abs(vx(k,j,i))**2+abs(vy(k,j,i))**2+ &
                             abs(vz(k,j,i))**2)*tmq
                    ENDIF
