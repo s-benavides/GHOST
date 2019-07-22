@@ -5,6 +5,23 @@
             CALL maxabs(vx,vy,vz,rmp,0)
             CALL maxabs(ax,ay,az,rmq,1)
 !
+! Calculates the energy perpendicular to B and Omega separately.
+!
+
+      tmp = 0.0D0
+      tmq = 0.0D0                            !dpe,dpa
+      CALL energy_arbdir(vx,vy,vz,bx0,by0,bz0,tmp,tmq)
+      tmr = 0.0D0
+      tms = 0.0D0
+      CALL energy_arbdir(vx,vy,vz,omegax,omegay,omegaz,tmr,tms)
+
+      IF (myrank.eq.0) THEN
+               OPEN(1,file='eperp_epara.txt',position='append')
+          WRITE(1,FMT='(E25.18,E25.18,E25.18,E25.18,E25.18)') dump,tmp,tmq,tmr,tms
+               CLOSE(1)                 ! perp2B,para2B,perp2omega,para2omega
+       ENDIF
+
+!
 ! Computes |u|^2 at k_f.
 !
       tmp = 0.0D0
