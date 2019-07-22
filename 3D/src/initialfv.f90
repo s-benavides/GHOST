@@ -9,43 +9,15 @@
 ! end, the three components of the forcing in spectral
 ! space should be stored in the arrays fx, fy, and fz.
 
-! Random forcing (by Santiago Benavides)
-! This function is meant to be used when rand = 1. It is
-! made to choose one wavevector randomly, then making fx,
-! fy, fz = 0 except at k_f, where it is random. This is in
-! contrast to the other random forcing function which puts
-! energy at all wavenumbers within the given shell at one
-! time, which in certain cases is too strong.
-! 
-! If rand = 1, then this forcing function will give an
-! energy injection rate of f0 at kup. 
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Superposition of harmonic modes with random phases
+!     kdn : minimum wave number
+!     kup : maximum wave number
 
-! Pick random wavenumber of length close to kup:
-      IF (myrank.eq.0) THEN
-        kfx = randu(seed)
-        kfy = randu(seed)
-        kfz = randu(seed)
-        rmp = sqrt(kfx**2+kfy**2+kfz**2)
-        IF (rmp>0.0) THEN
-                kfx = floor(kup*kfx/rmp + 0.5)
-                kfy = floor(kup*kfy/rmp + 0.5)
-                kfz = floor(kup*kfz/rmp + 0.5)
-        ELSE
-                print*,"kfx=kfy=kfz=0!"
-                kfx = 1.
-                kfy = 1.
-                kfz = 1.
-                rmp = sqrt(kfx**2+kfy**2+kfz**2)
-                kfx = floor(kup*kfx/rmp + 0.5)
-                kfy = floor(kup*kfy/rmp + 0.5)
-                kfz = floor(kup*kfz/rmp + 0.5)
-        ENDIF
-      ENDIF
-        CALL MPI_BCAST(kfx,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
-        CALL MPI_BCAST(kfy,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
-        CALL MPI_BCAST(kfz,1,GC_REAL,0,MPI_COMM_WORLD,ierr)        
+! Notes:
+! - curl(C1,C2,C3) = (fx,fy,fz)
+! - Have: |C| = 1/kf so that |F| = f0 in the end.
+! - If I use this with f0 = f0/sqrt(dt), will this give me an energy injection of 
+!   f0^2 as I would guess?
 
       IF (ista.eq.1) THEN
       ! Sets largest mode forcing to zero
@@ -54,8 +26,8 @@
          C3(1,1,1) = 0. 
          ! cycles through (1,j,1), have to manually set a(-k) = cong(a(k))  
          DO j = 2,ny/2+1
-             IF ((kx(1).eq.kfx).and.((ky(j).eq.kfy).or.(ky(j)&
-                        .eq.(-kfy))).and.(kz(1).eq.kfz)) THEN
+
+            IF ((kk2(1,j,1).le.kup**2).and.(kk2(1,j,1).ge.kdn**2)) THEN
                dump = 1./sqrt(kk2(1,j,1))
                phase = 2*pi*randu(seed)
                C1(1,j,1) = (COS(phase)+im*SIN(phase))*dump
@@ -74,11 +46,12 @@
                C3(1,j,1) = 0.
                C3(1,ny-j+2,1) = 0.
             ENDIF
+
          END DO
          ! cycles through (k,1,1)
          DO k = 2,nz/2+1
-             IF ((kx(1).eq.kfx).and.(ky(1).eq.kfy).and.&
-                ((kz(k).eq.kfz).or.(kz(k).eq.(-kfz)))) THEN
+
+            IF ((kk2(k,1,1).le.kup**2).and.(kk2(k,1,1).ge.kdn**2)) THEN
                dump = 1./sqrt(kk2(k,1,1))
                phase = 2*pi*randu(seed)
                C1(k,1,1) = (COS(phase)+im*SIN(phase))*dump
@@ -97,13 +70,13 @@
                C3(k,1,1) = 0.
                C3(nz-k+2,1,1) = 0.
             ENDIF
-                
+
          END DO
          ! cycles through (k,j,1)
          DO j = 2,ny
             DO k = 2,nz/2+1
-               IF ((kx(1).eq.kfx).and.((ky(j).eq.kfy).or.(ky(j).eq.&
-               (-kfy))).and.((kz(k).eq.kfz).or.(kz(k).eq.(-kfz)))) THEN
+     
+            IF ((kk2(k,j,1).le.kup**2).and.(kk2(k,j,1).ge.kdn**2)) THEN
                dump = 1./sqrt(kk2(k,j,1))
                phase = 2*pi*randu(seed)
                C1(k,j,1) = (COS(phase)+im*SIN(phase))*dump
@@ -130,20 +103,20 @@
             DO j = 1,ny
                DO k = 1,nz
 
-               IF (((kx(i).eq.kfx).or.(kx(i).eq.(-kfx))).and.&
-                        (ky(j).eq.kfy).and.(kz(k).eq.kfz)) THEN
+               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                ELSE
                   C1(k,j,i) = 0.
                   C2(k,j,i) = 0.
                   C3(k,j,i) = 0.
                ENDIF
+
                END DO
             END DO
          END DO
@@ -151,30 +124,29 @@
          DO i = ista,iend
             DO j = 1,ny
                DO k = 1,nz
-                 
-               IF (((kx(i).eq.kfx).or.(kx(i).eq.(-kfx))).and.&
-                        (ky(j).eq.kfy).and.(kz(k).eq.kfz)) THEN
+
+               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = 2*(COS(phase)+im*SIN(phase))*dump
+                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
                ELSE
                   C1(k,j,i) = 0.
                   C2(k,j,i) = 0.
                   C3(k,j,i) = 0.
                ENDIF
+
                END DO
             END DO
         END DO
       ENDIF
 
-        
       CALL rotor3(C2,C3,fx,1)
       CALL rotor3(C1,C3,fy,2)
-      CALL rotor3(C1,C2,fz,3) 
+      CALL rotor3(C1,C2,fz,3)
       IF (rand.eq.1) THEN
               dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
       ELSE 
