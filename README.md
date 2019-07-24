@@ -17,7 +17,7 @@ Changes:
 * Modified some of the global outputs. Including |u(k_f)|^2, |J x B|^2 and hybrid helicity for RMHDB when the magnetic field and rotation are aligned.
 * For RMHDB, added two new functions (with respective outputs): 
 	1. 'spec2D_yavg', which takes the 2D spectrum, but instead of integrating azimuthally, it integrates in the y-direction. Meant to be used with misaligned Omega and B_0 (with B_0 only x and z, not y component).
-	2. 'energy_arbdir', measures the total kinetic energy, split up into a parallel and perpendicular component, with respect to an arbitrary vector that is an input, e.g. $B_0$ or \Omega".
+	2. 'energy_arbdir', measures the total kinetic energy, split up into a parallel and perpendicular component, with respect to an arbitrary vector that is an input, e.g. B_0 or \Omega".
 
 %%%%%
 
