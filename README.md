@@ -3,7 +3,7 @@
 %%%%%
 Addition notes by Santiago Benavides (santib@mit.edu)
 
-All changes _only_ apply to solvers:
+All changes _only_ apply to solvers (other solvers may not work):
 * HD
 * ROTH
 * MHD
