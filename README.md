@@ -3,7 +3,7 @@
 %%%%%
 Addition notes by Santiago Benavides (santib@mit.edu)
 
-All changes _only_ apply to solvers (other solvers may not work):
+All changes _only_ apply to the following 3D solvers (other 3D solvers may not work):
 * HD
 * ROTH
 * MHD
