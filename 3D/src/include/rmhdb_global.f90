@@ -21,6 +21,25 @@
                CLOSE(1)                 ! perp2B,para2B,perp2omega,para2omega
        ENDIF
 
+! Now for magnetic energy
+      CALL rotor3(ay,az,c1,1) ! computing bx
+      CALL rotor3(ax,az,c2,2)
+      CALL rotor3(ax,ay,c3,3)
+
+      tmp = 0.0D0
+      tmq = 0.0D0                            !dpe,dpa
+      CALL energy_arbdir(c1,c2,c3,bx0,by0,bz0,tmp,tmq)
+      tmr = 0.0D0
+      tms = 0.0D0
+      CALL energy_arbdir(c1,c2,c3,omegax,omegay,omegaz,tmr,tms)
+
+      IF (myrank.eq.0) THEN
+               OPEN(1,file='ebperp_ebpara.txt',position='append')
+          WRITE(1,FMT='(E25.18,E25.18,E25.18,E25.18,E25.18)') dump,tmp,tmq,tmr,tms
+               CLOSE(1)      !magnetic energy: perp2B,para2B,perp2omega,para2omega
+       ENDIF
+
+
 !
 ! Computes |u|^2 at k_f.
 !
