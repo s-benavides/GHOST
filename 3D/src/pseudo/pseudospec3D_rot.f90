@@ -1729,7 +1729,7 @@
       END SUBROUTINE write_fourier
 
 !*****************************************************************
-      SUBROUTINE spec2D_yavg(a,b,c,nmb,dir)
+      SUBROUTINE spec2D_yavg(a,b,c,nmb,dir,kin)
 !-----------------------------------------------------------------
 !
 ! Computes the energy power spectrum averaged over the ky direction.
@@ -1744,6 +1744,8 @@
 !     c  : input matrix in the z-direction
 !     nmb: the extension used when writting the file
 !     dir: directory where the files are written
+!     kin: if kin==1: names outputs 'kspec'. 
+!          if kin==0: names outputs 'mspec'.
 !
       USE fprecision
       USE commtypes
@@ -1761,6 +1763,7 @@
       REAL(KIND=GP)       :: tmq,tmp
       INTEGER             :: i,j,k
       INTEGER             :: kmn,kmz
+      INTEGER, INTENT(IN) :: kin
       CHARACTER(len=100), INTENT(IN) :: dir
       CHARACTER(len=*),   INTENT(IN) :: nmb
 
@@ -1840,8 +1843,13 @@
          CALL MPI_REDUCE(Ek,Ektot,(nx/2+1)*(nz/2+1),GC_REAL,    &
                          MPI_SUM,0,MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
-            OPEN(1,file=trim(dir) // '/' // 'kspec2D_yavg.' // nmb //   &
+            IF (kin.eq.1) THEN
+                    OPEN(1,file=trim(dir) // '/' // 'kspec2D_yavg.' // nmb //   &
                     '.out',form='unformatted')
+            ELSE IF (kin.eq.0) THEN
+                    OPEN(1,file=trim(dir) // '/' // 'mspec2D_yavg.' // nmb //   &
+                    '.out',form='unformatted')
+            ENDIF
             WRITE(1) Ektot
             CLOSE(1)
          ENDIF
