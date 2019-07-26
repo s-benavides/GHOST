@@ -1759,7 +1759,7 @@
 
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
-      REAL(KIND=GP),    DIMENSION(nmaxperp/2+1,nz/2+1)      :: Ek,Ektot
+      REAL(KIND=GP),    DIMENSION(nmaxperp/2+1,nz)      :: Ek,Ektot
       REAL(KIND=GP)       :: tmq,tmp
       INTEGER             :: i,j,k
       INTEGER             :: kmn,kmz
@@ -1771,7 +1771,7 @@
 ! Sets Ek to zero
 !
       DO i = 1,nmaxperp/2+1
-         DO k = 1,nz/2+1
+         DO k = 1,nz
             Ek(i,k) = 0.0_GP
          END DO
       END DO
@@ -1787,13 +1787,10 @@
                kmn = int(abs(kx(1))*Lx+1)
                IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
                   DO k = 1,nz
-                     kmz = int(abs(kz(k))*Lz+1)
-                     IF ((kmz.gt.0).and.(kmz.le.nz/2+1)) THEN
                      tmq = (abs(a(k,j,1))**2+abs(b(k,j,1))**2+        &
                             abs(c(k,j,1))**2)*tmp
 !$omp atomic
-                     Ek(kmn,kmz) = Ek(kmn,kmz)+tmq
-                     ENDIF
+                     Ek(kmn,k) = Ek(kmn,k)+tmq
                   END DO
                ENDIF
             END DO
@@ -1804,13 +1801,10 @@
                   kmn = int(abs(kx(i))*Lx+1)
                   IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
                      DO k = 1,nz
-                        kmz = int(abs(kz(k))*Lz+1)
-                        IF ((kmz.gt.0).and.(kmz.le.nz/2+1)) THEN
                         tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
                                  abs(c(k,j,i))**2)*tmp
 !$omp atomic
-                        Ek(kmn,kmz) = Ek(kmn,kmz)+tmq
-                        ENDIF
+                        Ek(kmn,k) = Ek(kmn,k)+tmq
                      END DO
                   ENDIF
                END DO
@@ -1823,13 +1817,10 @@
                   kmn = int(abs(kx(i))*Lx+1)
                   IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
                      DO k = 1,nz
-                        kmz = int(abs(kz(k))*Lz+1)
-                        IF ((kmz.gt.0).and.(kmz.le.nz/2+1)) THEN
                         tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
                                  abs(c(k,j,i))**2)*tmp
 !$omp atomic
-                        Ek(kmn,kmz) = Ek(kmn,kmz)+tmq
-                        ENDIF
+                        Ek(kmn,k) = Ek(kmn,k)+tmq
                      END DO
                   ENDIF
                END DO
@@ -1840,7 +1831,7 @@
 ! Computes the reduction between nodes
 ! and exports the result to a file
 !
-         CALL MPI_REDUCE(Ek,Ektot,(nx/2+1)*(nz/2+1),GC_REAL,    &
+         CALL MPI_REDUCE(Ek,Ektot,(nx/2+1)*nz,GC_REAL,    &
                          MPI_SUM,0,MPI_COMM_WORLD,ierr)
          IF (myrank.eq.0) THEN
             IF (kin.eq.1) THEN
