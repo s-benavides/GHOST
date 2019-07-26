@@ -1737,6 +1737,7 @@
 !
 ! Output files contain:
 ! 'odir/kspec2D.XXX.out': kinetic energy 2D spectrum ev(kperp,kpara)
+! 'odir/mspec2D.XXX.out': magnetic energy 2D spectrum ev(kperp,kpara)
 !
 ! Parameters
 !     a  : input matrix in the x-direction
@@ -1790,7 +1791,11 @@
                      tmq = (abs(a(k,j,1))**2+abs(b(k,j,1))**2+        &
                             abs(c(k,j,1))**2)*tmp
 !$omp atomic
-                     Ek(kmn,k) = Ek(kmn,k)+tmq
+                           IF (k.ge.(nz/2+1)) THEN
+                                Ek(kmn,k-nz/2) = Ek(kmn,k-nz/2)+tmq
+                           ELSE
+                                Ek(kmn,k+nz/2) = Ek(kmn,k+nz/2)+tmq
+                           ENDIF
                   END DO
                ENDIF
             END DO
@@ -1803,8 +1808,12 @@
                      DO k = 1,nz
                         tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
                                  abs(c(k,j,i))**2)*tmp
-!$omp atomic
-                        Ek(kmn,k) = Ek(kmn,k)+tmq
+!$omp atomic                    
+                           IF (k.ge.(nz/2+1)) THEN 
+                                Ek(kmn,k-nz/2) = Ek(kmn,k-nz/2)+tmq
+                           ELSE
+                                Ek(kmn,k+nz/2) = Ek(kmn,k+nz/2)+tmq
+                           ENDIF
                      END DO
                   ENDIF
                END DO
@@ -1820,7 +1829,12 @@
                         tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
                                  abs(c(k,j,i))**2)*tmp
 !$omp atomic
-                        Ek(kmn,k) = Ek(kmn,k)+tmq
+                           IF (k.ge.(nz/2+1)) THEN
+                                Ek(kmn,k-nz/2) = Ek(kmn,k-nz/2)+tmq
+                           ELSE
+                                Ek(kmn,k+nz/2) = Ek(kmn,k+nz/2)+tmq
+                           ENDIF
+
                      END DO
                   ENDIF
                END DO
@@ -1965,3 +1979,151 @@
 
       RETURN
       END SUBROUTINE energy_arbdir
+
+
+!*****************************************************************
+      SUBROUTINE spec3D(a,b,c,nmb,dir,kin)
+!-----------------------------------------------------------------
+!
+! Computes the energy power spectrum averaged over the ky direction.
+! The output is written to a binary file by the first node.
+!
+! Output files contain:
+! 'odir/kspec3D.XXX.out': kinetic energy 3D spectrum ev(kperp,kpara)
+! 'odir/mspec3D.XXX.out': magnetic energy 3D spectrum ev(kperp,kpara)
+!
+! Parameters
+!     a  : input matrix in the x-direction
+!     b  : input matrix in the y-direction
+!     c  : input matrix in the z-direction
+!     nmb: the extension used when writting the file
+!     dir: directory where the files are written
+!     kin: if kin==1: names outputs 'kspec'.
+!          if kin==0: names outputs 'mspec'.
+!
+      USE fprecision
+      USE commtypes
+      USE kes
+      USE grid
+      USE mpivars
+      USE filefmt
+      USE boxsize
+!$    USE threads
+      IMPLICIT NONE
+
+      COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
+      COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
+      REAL(KIND=GP),    DIMENSION(nmaxperp/2+1,ny,nz)      :: Ek,Ektot
+      REAL(KIND=GP)       :: tmq,tmp
+      INTEGER             :: i,j,k
+      INTEGER             :: kmn,kmz
+      INTEGER, INTENT(IN) :: kin
+      CHARACTER(len=100), INTENT(IN) :: dir
+      CHARACTER(len=*),   INTENT(IN) :: nmb
+!
+! Sets Ek to zero
+!
+      DO i = 1,nmaxperp/2+1
+        DO j = 1,ny
+         DO k = 1,nz
+            Ek(i,j,k) = 0.0_GP
+         END DO
+       END DO
+      END DO
+
+!
+! Computes the kinetic energy spectrum
+!
+      tmp = 1.0_GP/ &
+            (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
+         IF (ista.eq.1) THEN
+!$omp parallel do private (k,kmz,kmn,tmq)
+            DO j = 1,ny
+               kmn = int(abs(kx(1))*Lx+1)
+               IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                  DO k = 1,nz
+                     tmq = (abs(a(k,j,1))**2+abs(b(k,j,1))**2+        &
+                            abs(c(k,j,1))**2)*tmp
+!$omp atomic
+                   IF ((k.ge.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k-nz/2) = Ek(kmn,j-ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.ge.(nz/2+1)).and.(j.lt.(ny/2+1))) THEN
+                      Ek(kmn,j+ny/2,k-nz/2) = Ek(kmn,j+ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.lt.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k+nz/2) = Ek(kmn,j-ny/2,k+nz/2)+tmq
+                   ELSE
+                      Ek(kmn,j+ny/2,k+nz/2) = Ek(kmn,j+ny/2,k+nz/2)+tmq
+                   ENDIF
+                  END DO
+               ENDIF
+            END DO
+!$omp parallel do if (iend-2.ge.nth) private (j,k,kmz,kmn,tmq)
+            DO i = 2,iend
+!$omp parallel do if (iend-2.lt.nth) private (k,kmz,kmn,tmq)
+               DO j = 1,ny
+                  kmn = int(abs(kx(i))*Lx+1)
+                  IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                     DO k = 1,nz
+                        tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
+                                 abs(c(k,j,i))**2)*tmp
+!$omp atomic
+                   IF ((k.ge.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k-nz/2) = Ek(kmn,j-ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.ge.(nz/2+1)).and.(j.lt.(ny/2+1))) THEN
+                      Ek(kmn,j+ny/2,k-nz/2) = Ek(kmn,j+ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.lt.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k+nz/2) = Ek(kmn,j-ny/2,k+nz/2)+tmq
+                   ELSE
+                      Ek(kmn,j+ny/2,k+nz/2) = Ek(kmn,j+ny/2,k+nz/2)+tmq
+                   ENDIF
+                     END DO
+                  ENDIF
+               END DO
+            END DO
+         ELSE
+!$omp parallel do if (iend-ista.ge.nth) private (j,k,kmz,kmn,tmq)
+            DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k,kmz,kmn,tmq)
+               DO j = 1,ny
+                  kmn = int(abs(kx(i))*Lx+1)
+                  IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                     DO k = 1,nz
+                        tmq = 2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+   &
+                                 abs(c(k,j,i))**2)*tmp
+!$omp atomic
+                   IF ((k.ge.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k-nz/2) = Ek(kmn,j-ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.ge.(nz/2+1)).and.(j.lt.(ny/2+1))) THEN
+                      Ek(kmn,j+ny/2,k-nz/2) = Ek(kmn,j+ny/2,k-nz/2)+tmq
+                   ELSE IF ((k.lt.(nz/2+1)).and.(j.ge.(ny/2+1))) THEN
+                      Ek(kmn,j-ny/2,k+nz/2) = Ek(kmn,j-ny/2,k+nz/2)+tmq
+                   ELSE
+                      Ek(kmn,j+ny/2,k+nz/2) = Ek(kmn,j+ny/2,k+nz/2)+tmq
+                   ENDIF
+                     END DO
+                  ENDIF
+               END DO
+            END DO
+         ENDIF
+
+!
+! Computes the reduction between nodes
+! and exports the result to a file
+!
+         CALL MPI_REDUCE(Ek,Ektot,(nx/2+1)*ny*nz,GC_REAL,    &
+                         MPI_SUM,0,MPI_COMM_WORLD,ierr)
+         IF (myrank.eq.0) THEN
+            IF (kin.eq.1) THEN
+                    OPEN(1,file=trim(dir) // '/' // 'kspec3D.' // nmb //   &
+                    '.out',form='unformatted')
+            ELSE IF (kin.eq.0) THEN
+                    OPEN(1,file=trim(dir) // '/' // 'mspec3D.' // nmb //   &
+                    '.out',form='unformatted')
+            ENDIF
+            WRITE(1) Ektot
+            CLOSE(1)
+         ENDIF
+
+
+      RETURN
+      END SUBROUTINE spec3D
