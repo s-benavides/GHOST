@@ -1,7 +1,8 @@
 ! User-defined forcing scheme.
 ! A forcing scheme can be implemented in this file, which
 ! is used by the code when 'rand=3' is set in 'parameter.dat'.
-! This scheme is executed every 'fstep' time steps. See the 
+! This scheme is executed every 'fstep' time steps, or every
+! 'cort' time interval, if using CFL condition. See the
 ! folder 'examples' for an example. If not needed, this file
 ! can be left empty.
 ! Forcing arrays are complex (in Fourier space) of size
