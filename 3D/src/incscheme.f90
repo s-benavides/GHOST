@@ -43,6 +43,7 @@
 
 ! Notes:
 ! - curl(C1,C2,C3) = (fx,fy,fz)
+! - Forces ONLY 2D modes
 ! - Have: |C| = 1/kf so that |F| = f0 in the end.
 ! - If I use this with f0 = f0/sqrt(dt), will this give me an energy injection of 
 !   f0^2 as I would guess?
@@ -79,105 +80,92 @@
          ! cycles through (k,1,1)
          DO k = 2,nz/2+1
 
-            IF ((kk2(k,1,1).le.kup**2).and.(kk2(k,1,1).ge.kdn**2)) THEN
-               dump = 1./sqrt(kk2(k,1,1))
-               phase = 2*pi*randu(seed)
-               C1(k,1,1) = (COS(phase)+im*SIN(phase))*dump
-               C1(nz-k+2,1,1) = conjg(C1(k,1,1))
-               phase = 2*pi*randu(seed)
-               C2(k,1,1) = (COS(phase)+im*SIN(phase))*dump
-               C2(nz-k+2,1,1) = conjg(C2(k,1,1))
-               phase = 2*pi*randu(seed)
-               C3(k,1,1) = (COS(phase)+im*SIN(phase))*dump
-               C3(nz-k+2,1,1) = conjg(C3(k,1,1))
-            ELSE
-               C1(k,1,1) = 0.
+               C1(k,1,1) = 0. 
                C1(nz-k+2,1,1) = 0.
-               C2(k,1,1) = 0.
+               C2(k,1,1) = 0. 
                C2(nz-k+2,1,1) = 0.
                C3(k,1,1) = 0.
                C3(nz-k+2,1,1) = 0.
-            ENDIF
 
          END DO
          ! cycles through (k,j,1)
          DO j = 2,ny
             DO k = 2,nz/2+1
      
-            IF ((kk2(k,j,1).le.kup**2).and.(kk2(k,j,1).ge.kdn**2)) THEN
-               dump = 1./sqrt(kk2(k,j,1))
-               phase = 2*pi*randu(seed)
-               C1(k,j,1) = (COS(phase)+im*SIN(phase))*dump
-               C1(nz-k+2,ny-j+2,1) = conjg(C1(k,j,1))
-               phase = 2*pi*randu(seed)
-               C2(k,j,1) = (COS(phase)+im*SIN(phase))*dump
-               C2(nz-k+2,ny-j+2,1) = conjg(C2(k,j,1))
-               phase = 2*pi*randu(seed)
-               C3(k,j,1) = (COS(phase)+im*SIN(phase))*dump
-               C3(nz-k+2,ny-j+2,1) = conjg(C3(k,j,1))
-            ELSE
                C1(k,j,1) = 0.
                C1(nz-k+2,ny-j+2,1) = 0.
                C2(k,j,1) = 0.
                C2(nz-k+2,ny-j+2,1) = 0.
                C3(k,j,1) = 0.
                C3(nz-k+2,ny-j+2,1) = 0.
-            ENDIF
 
             END DO
          END DO
-         ! finally cycles through (k,j,i) 
-         DO i = 2,iend
+         DO i=2,iend
             DO j = 1,ny
-               DO k = 1,nz
+         ! cycles through (k.ne.1,j,i)
+             DO k = 2,nz
+               C1(k,j,i) = 0.
+               C2(k,j,i) = 0.
+               C3(k,j,i) = 0.
+             END DO
 
-               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
-                  dump = 1./sqrt(kk2(k,j,i))
+         ! finally cycles through (1,j,i)
+
+               IF ((kk2(1,j,i).le.kup**2).and.(kk2(1,j,i).ge.kdn**2)) THEN
+                  dump = 1./sqrt(kk2(1,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C1(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C2(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C3(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                ELSE
-                  C1(k,j,i) = 0.
-                  C2(k,j,i) = 0.
-                  C3(k,j,i) = 0.
+                  C1(1,j,i) = 0.
+                  C2(1,j,i) = 0.
+                  C3(1,j,i) = 0.
                ENDIF
 
-               END DO
             END DO
          END DO
       ELSE
-         DO i = ista,iend
-            DO j = 1,ny
-               DO k = 1,nz
+        DO i = ista,iend
 
-               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
-                  dump = 1./sqrt(kk2(k,j,i))
+            DO j = 1,ny
+         ! cycles through (k.ne.1,j,i)
+             DO k = 2,nz
+               C1(k,j,i) = 0.
+               C2(k,j,i) = 0.
+               C3(k,j,i) = 0.
+             END DO
+
+         ! finally cycles through (1,j,i)
+
+               IF ((kk2(1,j,i).le.kup**2).and.(kk2(1,j,i).ge.kdn**2)) THEN
+                  dump = 1./sqrt(kk2(1,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C1(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C2(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C3(1,j,i) = (COS(phase)+im*SIN(phase))*dump
                ELSE
-                  C1(k,j,i) = 0.
-                  C2(k,j,i) = 0.
-                  C3(k,j,i) = 0.
+                  C1(1,j,i) = 0.
+                  C2(1,j,i) = 0.
+                  C3(1,j,i) = 0.
                ENDIF
 
-               END DO
             END DO
+
         END DO
       ENDIF
 
       CALL rotor3(C2,C3,fx,1)
       CALL rotor3(C1,C3,fy,2)
       CALL rotor3(C1,C2,fz,3)
-      IF (rand.eq.1) THEN
-              dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
-      ELSE 
+      IF (rand.eq.0) THEN
               dump = f0
+      ELSE 
+              dump = sqrt(2.0d0*f0)/sqrt(dt)  ! So that inj = f0
       ENDIF
       CALL normalize(fx,fy,fz,dump,1,MPI_COMM_WORLD)
