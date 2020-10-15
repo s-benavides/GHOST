@@ -148,10 +148,29 @@
               ENDIF
             ENDIF 
 
+!
+! Computes b.grad(v) and B_0.grad(v)
+!
+      CALL rotor3(ay,az,c1,1) ! computing bx
+      CALL rotor3(ax,az,c2,2)
+      CALL rotor3(ax,ay,c3,3)
+      CALL vector3(vx,vy,vz,c1,c2,c3,c4,c5,c6) ! v x b
+      CALL cross(ax,ay,az,c4,c5,c6,tmv,0) ! < b . curl(v x b) >
+      ! Manually calculate v x B_0 since B_0 is uniform
+      c1 = vy*bz0 - vz*by0
+      c2 = vz*bx0 - vx*bz0
+      c3 = vx*by0 - vy*by0  
+      CALL cross(ax,ay,az,c1,c2,c3,tmp,0) ! < b . curl(v x B_0) >
+
+!!!!!!!!!!!!!!!!!!!!!
+
             IF (myrank.eq.0) THEN
                OPEN(1,file='uf.txt',position='append')
                WRITE(1,FMT='(E25.18,E25.18,E25.18)') dump,tmr,tms
-               CLOSE(1)                          ! u^2, b^2 at kf
+               CLOSE(1)                          ! t,  u^2, b^2 at kf
+               OPEN(1,file='b0_bal.txt',position='append')
+               WRITE(1,FMT='(E25.18,E26.18,E26.18)') dump,tmv,tmp
+               CLOSE(1)                          ! t , bal_b, bal_b0
                OPEN(1,file='injection.txt',position='append')
                WRITE(1,FMT='(E13.6,E22.14,E22.14)') dump,eps,epm
                CLOSE(1)
