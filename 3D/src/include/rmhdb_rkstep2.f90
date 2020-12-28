@@ -9,7 +9,7 @@
             C8(1,1,1) = by0*real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP)
             C9(1,1,1) = bz0*real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP)
          ENDIF
-         CALL prodre3(vx,vy,vz,C10,C11,C12)
+         CALL prodre3(vx,vy,vz,C10,C11,C12) ! calculates curl(v) x v
 !$omp parallel do if (iend-ista.ge.nth) private (j,k)
          DO i = ista,iend               ! Coriolis force
 !$omp parallel do if (iend-ista.lt.nth) private (k)
@@ -20,16 +20,22 @@
                END DO
             END DO
          END DO
-         CALL prodre3(C7,C8,C9,C13,C14,C15)
+         CALL prodre3(C7,C8,C9,C13,C14,C15) ! calculates curl(b+B_0) x(b+ B_0)
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
-            CALL entrans(C1,C2,C3,C13,C14,C15,ext,2,odir)
-            CALL entpara(C1,C2,C3,C13,C14,C15,ext,2,odir)
+            CALL entrans(C1,C2,C3,C13,C14,C15,ext,2,odir) ! flux of v . (J x (b+B_0))
+            CALL entpara(C1,C2,C3,C13,C14,C15,ext,2,odir) 
             CALL entperp(C1,C2,C3,C13,C14,C15,ext,2,odir)
-         CALL nonlin3(C10,C11,C12,C13,C14,C15,C16,1)
+         CALL nonlin3(C10,C11,C12,C13,C14,C15,C16,1)  ! computes-(v.grad)v+(b.grad)b-grad(p)
+                                                      ! [or -curl(v)xv+curl(b)xb-grad(p)] in Fourier
+                                                      ! space, with the pressure chosen to satisfy the
+                                                      ! incompressibility condition.
          CALL nonlin3(C10,C11,C12,C13,C14,C15,C17,2)
          CALL nonlin3(C10,C11,C12,C13,C14,C15,C10,3)
-         CALL vector3(vx,vy,vz,C7,C8,C9,C11,C12,C13)
-         CALL gauge3(C11,C12,C13,C7,1)
+         CALL vector3(vx,vy,vz,C7,C8,C9,C11,C12,C13)  ! computes v x (b+B_0)
+         CALL gauge3(C11,C12,C13,C7,1)  ! Computes the nonlinear terms in the induction
+                                        ! equation for the vector potential, imposing a
+                                        ! gauge that satisfies the condition div(A)=0.
+
          CALL gauge3(C11,C12,C13,C8,2)
          CALL gauge3(C11,C12,C13,C9,3)
          CALL diss(vx,vx,hek,hok,nu,hnu)
@@ -40,7 +46,7 @@
          CALL diss(az,az,hem,hom,mu,hmu)
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             THEN
-            CALL entrans(C1,C2,C3,C16,C17,C10,ext,1,odir)
+            CALL entrans(C1,C2,C3,C16,C17,C10,ext,1,odir) ! flux of v.(-v.grad(v) + Jx(b+B)0) -grad(p))
             CALL entpara(C1,C2,C3,C16,C17,C10,ext,1,odir)
             CALL entperp(C1,C2,C3,C16,C17,C10,ext,1,odir)
             CALL entrans(C4,C5,C6,C7,C8,C9,ext,0,odir)
