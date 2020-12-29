@@ -1,6 +1,6 @@
 ! Global quantities computed in HD runs in a rotating frame
 
-            CALL qmhdcheck(vx,vy,vz,fx,fy,fz,nu,hek,hnu,hok,NN,dump,dt,1,0)
+            CALL qmhdcheck(vx,vy,vz,fx,fy,fz,nu,hek,hnu,hok,NNx,NNz,dump,dt,1,0)
             CALL maxabs(vx,vy,vz,rmp,0)
 !
 ! Computes |u|^2 at k_f.
