@@ -15,9 +15,10 @@
          CALL nonlhd3(C4,C5,C6,C7,1)
          CALL nonlhd3(C4,C5,C6,C8,2)
          CALL nonlhd3(C4,C5,C6,C4,3)
-         CALL bdiss(vx,vx,hek,hok,nu,hnu,bx0,bz0,eta)   ! vx =-(nu*k^(2*hek)+hnu*k^(-2*hok)+eta^(-1)*k^(-2)*(bx0*kx^2+bz0*kz^2))*vx
-         CALL bdiss(vy,vy,hek,hok,nu,hnu,bx0,bz0,eta)
-         CALL bdiss(vz,vz,hek,hok,nu,hnu,bx0,bz0,eta)
+        ! vx =-(nu*k^(2*hek)+hnu*k^(-2*hok)+NN*k^(-2)*kx**2)*vx
+         CALL bdiss(vx,vx,hek,hok,nu,hnu,NN)   
+         CALL bdiss(vy,vy,hek,hok,nu,hnu,NN)
+         CALL bdiss(vz,vz,hek,hok,nu,hnu,NN)
 
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
             THEN
