@@ -125,6 +125,11 @@ omegay = 0.00    ! uniform rotation in y
 omegaz = 0.00   ! uniform rotation in z
 /
 
+! Parameters for quasistatic MHD runs (QMHD solvers)
+&quasistatic
+NNx = 0.00       ! B_0x / eta
+NNz = 0.00       ! B_0z / eta
+
 ! Parameters for compressible runs (COMPHD, CMHD and CMHDB solvers)
 &compressible
 smach = 0.25     ! sound Mach number
