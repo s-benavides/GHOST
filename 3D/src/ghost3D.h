@@ -149,6 +149,7 @@
 #define VELOC_
 #define ROTATION_
 #define CFL_
+#define QMHD_
 #define INCLUDEFNAME_ 'qmhd_
 #endif
 
