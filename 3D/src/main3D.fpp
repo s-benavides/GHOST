@@ -2630,7 +2630,7 @@
                CALL io_write(1,odir,'rho',ext,planio,R3)
             ENDIF
 #endif
-         ENDIF
+         ENDIF  ! tstep
 
 #ifdef PART_
          IF ( dolag.GT.0 ) THEN
