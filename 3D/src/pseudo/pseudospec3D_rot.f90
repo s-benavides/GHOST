@@ -1985,7 +1985,7 @@
       SUBROUTINE spec3D(a,b,c,nmb,dir,kin)
 !-----------------------------------------------------------------
 !
-! Computes the energy power spectrum averaged over the ky direction.
+! Computes the energy power spectrum field in Fourier space E(kx,ky,kz).
 ! The output is written to a binary file by the first node.
 !
 ! Output files contain:
