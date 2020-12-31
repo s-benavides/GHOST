@@ -24,6 +24,7 @@
 !           MHD_SOL        builds the MHD solver
 !           MHDB_SOL       builds the MHD solver with uniform B_0
 !           RMHDB_SOL      builds the MHD solver with B_0 and rotation
+!           QMHD_SOL       builds the quasistatic MHD solver in a rotating frame
 !           HMHD_SOL       builds the Hall-MHD solver
 !           HMHDB_SOL      builds the HMHD solver with uniform B_0
 !           COMPRHD_SOL    builds the compressible HD solver
@@ -60,6 +61,8 @@
 ! 30 Aug 2009: SINGLE/DOUBLE precision (D. Rosenberg & P. Mininni)
 ! 10 Feb 2011: Hybrid MPI/OpenMP/CUDA support (D. Rosenberg)
 ! 21 Nov 2016: Anisotropic boxes (A. Alexakis & P. Mininni)
+! 2019-2020: CFL condition, hyper/hypo dissipation, quasistatic MHD
+! solver.
 !
 ! References:
 ! Mininni PD, Rosenberg DL, Reddy R, Pouquet A.; P.Comp.37, 123 (2011)
@@ -288,6 +291,9 @@
       REAL(KIND=GP)    :: by0
       REAL(KIND=GP)    :: bz0
 #endif
+#ifdef QMHD_
+      REAL(KIND=GP)    :: NNx, NNz
+#endif
 #ifdef ROTATION_
       REAL(KIND=GP)    :: omegax,omegay,omegaz
 #endif
@@ -441,6 +447,9 @@
 #endif
 #ifdef UNIFORMB_
       NAMELIST / uniformb / bx0,by0,bz0
+#endif
+#ifdef QMHD_
+      NAMELIST / quasistatic / NNx,NNz
 #endif
 #ifdef HALLTERM_
       NAMELIST / hallparam / ep,gspe
@@ -1121,7 +1130,23 @@
       CALL MPI_BCAST(by0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(bz0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
 #endif
-
+#ifdef QMHD_
+! Reads parameters for runs with quasistatic MHD
+! field from the namelist 'quasistatic' on the external
+! file 'parameter.inp'
+!     NNx: Related to interaction parameter = B_0x/sqrt(mu), multiplying the Lorentz term due to uniform magnetic field in x
+!     NNz: Related to interaction parameter = B_0z/sqrt(mu), multiplying the Lorentz term due to uniform magnetic field in z
+      
+      NNx = 0.0_GP
+      NNz = 0.0_GP
+      IF (myrank.eq.0) THEN
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
+         READ(1,NML=quasistatic)
+         CLOSE(1)
+      ENDIF
+      CALL MPI_BCAST(NNx,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(NNz,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+#endif
 #ifdef HALLTERM_
 ! Reads parameters for runs with the Hall effect 
 ! from the namelist 'hallparam' on the external 
