@@ -29,6 +29,7 @@ to build a solver other than the default):
    MHD        Magnetohydrodynamic (MHD) solver
    MHDB       MHD solver with a uniform magnetic field
    RMHDB      MHD solver with uniform magnetic field and rotation
+   QMHD       quasistatic MHD solver with rotation
    HMHD       Hall-MHD solver
    HMHDB      HMHD solver with a uniform magnetic field
    COMPRHD    Compressible HD solver
