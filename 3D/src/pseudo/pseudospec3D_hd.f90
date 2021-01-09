@@ -160,6 +160,59 @@
       END SUBROUTINE diss
 
 !*****************************************************************
+      SUBROUTINE bdiss(a,b,hyper,hypo,nu,hnu,NNx,NNz)
+!-----------------------------------------------------------------
+!
+! To be used in QMHD Solver!          
+!
+! Computes (nu*\nabla^(hyper*2) + hnu*\nabla^(-2*hypo) +
+! \nabla^(-2)*(NNx^2*\partial^2_x + 2*NNx*NNz\partial_z\partial_x + NNz^2
+! \partial^2_z)) a 
+!
+! Parameters
+!     a: input matrix
+!     b: at the output contains the Laplacian
+!     hyper: order of laplacian for dissipation
+!     hypo: order of inverse laplacian for hypodissipation
+!     nu: viscosity
+!     hnu: hypoviscosity
+!     NNx: Lorentz force term in the x direction
+!     NNz: Lorentz force term in the z direction
+!
+      USE kes
+      USE grid
+      USE mpivars
+!$    USE threads
+      IMPLICIT NONE
+
+      COMPLEX(KIND=GP), INTENT (IN), DIMENSION(nz,ny,ista:iend) :: a
+      COMPLEX(KIND=GP), INTENT(OUT), DIMENSION(nz,ny,ista:iend) :: b
+      REAL(KIND=GP), INTENT(IN) :: nu,hnu
+      REAL(KIND=GP), INTENT(IN) :: NNx,NNz
+      INTEGER, INTENT (IN) :: hyper,hypo
+      INTEGER :: i,j,k
+
+!$omp parallel do if (iend-ista.ge.nth) private (j,k)
+      DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k)
+         DO j = 1,ny
+            DO k = 1,nz
+               b(k,j,i) = -( & 
+                        nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo) &
+                        + kk2(k,j,i)**(-1)*( &
+                            NNx**2*kx(k,j,i)**2 &
+                            +NNx*NNz*kx(k,j,i)*kz(k,j,i)&
+                            +NNz**2*kz(k,j,i)**2 &
+                                           ) &    
+                           )*a(k,j,i)
+            END DO
+         END DO
+      END DO
+
+      RETURN
+      END SUBROUTINE bdiss
+
+!*****************************************************************
       SUBROUTINE rotor3(a,b,c,dir)
 !-----------------------------------------------------------------
 !
