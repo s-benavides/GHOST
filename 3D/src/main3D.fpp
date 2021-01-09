@@ -2423,10 +2423,10 @@
                CALL io_write(1,odir,'mean_vz',ext,planio,R3)
             ENDIF
 #endif
-#if defined(UNIFORMB_) && defined(ROTATION_)
-!! Outputs 3D spectrum
-          CALL spec3D(vx,vy,vz,ext,odir,1)
-#endif
+!!#if defined(UNIFORMB_) && defined(ROTATION_)
+!! !! Outputs 3D spectrum
+!!          CALL spec3D(vx,vy,vz,ext,odir,1)
+!!#endif
 #ifdef SCALAR_
             rmp = 1.0_GP/ &
 	          (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))
@@ -2594,13 +2594,13 @@
                CALL io_write(1,odir,'mean_bz',ext,planio,R3)
             ENDIF
 #endif
-#if defined(UNIFORMB_) && defined(ROTATION_)
-!! Outputs 3D spectrum
-      CALL rotor3(ay,az,c1,1) ! computing bx
-      CALL rotor3(ax,az,c2,2)
-      CALL rotor3(ax,ay,c3,3)
-      CALL spec3D(c1,c2,c3,ext,odir,0)
-#endif 
+!!#if defined(UNIFORMB_) && defined(ROTATION_)
+!! !! Outputs 3D spectrum
+!!      CALL rotor3(ay,az,c1,1) ! computing bx
+!!      CALL rotor3(ax,az,c2,2)
+!!      CALL rotor3(ax,ay,c3,3)
+!!      CALL spec3D(c1,c2,c3,ext,odir,0)
+!!#endif 
 #ifdef WAVEFUNCTION_
             rmp = 1.0_GP/(real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))
 !$omp parallel do if (iend-ista.ge.nth) private (j,k)
