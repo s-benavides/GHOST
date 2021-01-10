@@ -1383,10 +1383,10 @@
 ! Computes the energy dissipation rate due to lorentz force in quasi-static MHD
 !
 ! Apply the derivative operator on the velocity field:
-      CALL bdiss(a,c1,0,0,0,0,NNx,NNz) ! vx --> \nabla^(-2)*(NNx^2*\partial^2_x + 2*NNx*NNz\partial_z\partial_x + NNz^2
+      CALL bdiss(a,c1,0,0,0.0,0.0,NNx,NNz) ! vx --> \nabla^(-2)*(NNx^2*\partial^2_x + 2*NNx*NNz\partial_z\partial_x + NNz^2
 ! \partial^2_z)) vx 
-      CALL bdiss(b,c2,0,0,0,0,NNx,NNz)
-      CALL bdiss(c,c3,0,0,0,0,NNx,NNz)
+      CALL bdiss(b,c2,0,0,0.0,0.0,NNx,NNz)
+      CALL bdiss(c,c3,0,0,0.0,0.0,NNx,NNz)
       
       CALL cross(a,b,c,c1,c2,c3,jenk,1)
 
