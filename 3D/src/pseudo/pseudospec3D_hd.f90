@@ -182,6 +182,7 @@
       USE kes
       USE grid
       USE mpivars
+      USE ali
 !$    USE threads
       IMPLICIT NONE
 
@@ -191,12 +192,14 @@
       REAL(KIND=GP), INTENT(IN) :: NNx,NNz
       INTEGER, INTENT (IN) :: hyper,hypo
       INTEGER :: i,j,k
+      REAL(KIND=GP) :: tmp
 
 !$omp parallel do if (iend-ista.ge.nth) private (j,k)
       DO i = ista,iend
 !$omp parallel do if (iend-ista.lt.nth) private (k)
          DO j = 1,ny
             DO k = 1,nz
+              IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN
                b(k,j,i) = -( & 
                         nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo) &
                         + kk2(k,j,i)**(-1)*( &
@@ -205,6 +208,9 @@
                             +NNz**2*kz(k)**2 &
                                            ) &    
                            )*a(k,j,i)
+              ELSE
+               b(k,j,i) = 0.0_GP
+              ENDIF
             END DO
          END DO
       END DO
@@ -1383,23 +1389,23 @@
 ! Computes the energy dissipation rate due to lorentz force in quasi-static MHD
 !
 ! Apply the derivative operator on the velocity field:
-      CALL bdiss(a,c1,0,0,0.0d0,0.0d0,NNx,NNz) ! vx --> \nabla^(-2)*(NNx^2*\partial^2_x + 2*NNx*NNz\partial_z\partial_x + NNz^2
+      CALL bdiss(a,c1,1,1,0.0d0,0.0d0,NNx,NNz) ! vx --> \nabla^(-2)*(NNx^2*\partial^2_x + 2*NNx*NNz\partial_z\partial_x + NNz^2
 ! \partial^2_z)) vx 
-      CALL bdiss(b,c2,0,0,0.0d0,0.0d0,NNx,NNz)
-      CALL bdiss(c,c3,0,0,0.0d0,0.0d0,NNx,NNz)
+      CALL bdiss(b,c2,1,1,0.0d0,0.0d0,NNx,NNz)
+      CALL bdiss(c,c3,1,1,0.0d0,0.0d0,NNx,NNz)
       
       CALL cross(a,b,c,c1,c2,c3,jenk,1)
-
+      jenk = -jenk ! to get rid of the minus sign
 !
 ! Computes the energy injection rate
 !
       CALL cross(a,b,c,d,e,f,pot,1)
-!
+
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,denk,henk,pot,-jenk
+         WRITE(1,10) t,eng,denk,henk,pot,jenk
    10    FORMAT( E25.18,E25.18,E25.18,E25.18,E26.18,E26.18 )
          CLOSE(1)
          IF (hel.eq.1) THEN
