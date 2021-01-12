@@ -28,8 +28,7 @@ outnum = raw_input("out num? ") #sys.argv[1]
 outnum ="{:0>4s}".format(outnum)
 
 # If any calculations need to be made:
-otypes_calc = ['bx','by','bz','ME','wx'] # also possible: bal_B0
-#otypes_calc = ['wx']
+otypes_calc = ['wz'] # also possible: bal_B0
 for otype in otypes_calc:
         filelist = sorted(glob.glob(path+otype+'.'+outnum+'.out'))
         if len(filelist)==0:
@@ -37,7 +36,7 @@ for otype in otypes_calc:
                 field_calc.field_calc(runname,otype,outnum,reso=reso)
 
 # otypes that we want to view or save
-otypes = ['ME','wx','vz']#raw_input("out type? ") #str(sys.argv[2])
+otypes = ['wz']#raw_input("out type? ") #str(sys.argv[2])
 #otypes = ['wx']#raw_input("out type? ") #str(sys.argv[2])
 
 level = 128 #input("level? ")#int(sys.argv[3])
