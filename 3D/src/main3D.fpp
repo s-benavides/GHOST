@@ -62,7 +62,7 @@
 ! 10 Feb 2011: Hybrid MPI/OpenMP/CUDA support (D. Rosenberg)
 ! 21 Nov 2016: Anisotropic boxes (A. Alexakis & P. Mininni)
 ! 2019-2020: CFL condition, hyper/hypo dissipation, quasistatic MHD
-! solver.
+! solver. (S. J. Benavides)
 !
 ! References:
 ! Mininni PD, Rosenberg DL, Reddy R, Pouquet A.; P.Comp.37, 123 (2011)
