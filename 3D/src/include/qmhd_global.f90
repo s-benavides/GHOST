@@ -3,6 +3,49 @@
             CALL qmhdcheck(vx,vy,vz,fx,fy,fz,hek,hok,NNx,NNz,dump,dt,1,0)
             CALL maxabs(vx,vy,vz,rmp,0)
 !
+! Calculates the energy perpendicular to B and Omega separately.
+!
+       
+      tmp = 0.0D0
+      tmq = 0.0D0                            !dpe,dpa
+      CALL energy_arbdir(vx,vy,vz,NNx,0.0,NNz,tmp,tmq)
+      tmr = 0.0D0
+      tmt = 0.0D0
+      CALL energy_arbdir(vx,vy,vz,omegax,omegay,omegaz,tmr,tmt)
+        
+      IF (myrank.eq.0) THEN
+         OPEN(1,file='eperp_epara.txt',position='append')
+           WRITE(1,FMT='(E25.18,E25.18,E25.18,E25.18,E25.18)') dump,tmp,tmq,tmr,tmt
+         CLOSE(1)                 ! perp2B,para2B,perp2omega,para2omega
+      ENDIF
+
+!
+! Component energies!
+!
+
+      CALL energy(vx,0,0,tmp,1) ! <|vx|^2>
+      CALL energy(0,vy,0,tmq,1) ! <|vy|^2>
+      CALL energy(0,0,vz,tmr,1) ! <|vz|^2>
+
+      CALL energy_arbdir(vx,0,0,NNx,0.0,NNz,vxpe,vxpa) 
+      CALL energy_arbdir(0,vy,0,NNx,0.0,NNz,vype,vypa) 
+      CALL energy_arbdir(0,0,vz,NNx,0.0,NNz,vzpe,vzpa) 
+
+      CALL energy_arbdir(vx,0,0,omegax,omegay,omegaz,vxpeo,vxpao)
+      CALL energy_arbdir(0,vy,0,omegax,omegay,omegaz,vypeo,vypao)
+      CALL energy_arbdir(0,0,vz,omegax,omegay,omegaz,vzpeo,vzpao)
+
+!
+      IF (myrank.eq.0) THEN
+         OPEN(1,file='components.txt',position='append')            !vx  vy  vz
+           WRITE(1,FMT='(E25.18,E25.18,E25.18,E25.18,E25.18,E25.18, &
+                E25.18,E25.18,E25.18,E25.18,E25.18,E25.18,E25.18,E25.18 &
+                ,E25.18,E25.18)') dump,tmp,tmq,tmr,&
+                vxpe,vxpa,vype,vypa,vzpe,vzpa,vxpeo,vxpao,vypeo,vypao,vzpeo,vzpao
+         CLOSE(1)                 
+      ENDIF
+
+
 ! Computes |u|^2 at k_f.
 !
       tmp = 0.0D0
