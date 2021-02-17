@@ -10,7 +10,7 @@ from datetime import date
 rule = string.maketrans('d', '0')
 
 # Get all the AvgTimeO*B*.txt files
-avglist = sorted(glob.glob('rundat/*T90.txt'))
+avglist = sorted(glob.glob('rundat/AvgTimeO*.txt'))
 runnames = []
 for file in avglist:
   run = file.split('rundat/AvgTime')[1]
@@ -19,64 +19,61 @@ for file in avglist:
 
 Data = dict([])
 for i,run in enumerate(runnames):
-        Data_E = dict([])
-        print("Working on run %s " % run)
-        path = '../'+run+'/outs/'
-	
-	 # Average start indices
-        [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
+    Data_E = dict([])
+    print("Working on run %s " % run)
+    path = '../'+run+'/outs/'
 
-        start = int(start)
-        start_fl = int(start_fl)
+    # Average start indices
+    [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
 
-	rinfo  = np.genfromtxt('../'+run+'/run/parameter.inp',comments='!',skip_footer=136,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    start = int(start)
+    start_fl = int(start_fl)
 
-        rand = rinfo[5]	
+    rand = np.genfromtxt('../'+run+'/run/parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[5]
 
-	inds = []
-        files = sorted(glob.glob(path+'ktransfer.*.txt'))
-        for file in files:
-                num = file.split(path+'ktransfer.')[1]
-                num = num.split('.txt')[0]
-                if (int(num)>=start_fl):
-                        inds.append(num)
+    inds = []
+    files = sorted(glob.glob(path+'ktransfer.*.txt'))
+    for file in files:
+        num = file.split(path+'ktransfer.')[1]
+        num = num.split('.txt')[0]
+        if (int(num)>=start_fl):
+            inds.append(num)
 
-        numfiles = int(len(inds))
-        print('%s files to average' % numfiles)
+    numfiles = int(len(inds))
+    print('%s files to average' % numfiles)
 
 
-        # Reads flux files
-	# Load data
-	t,injk,injm = np.loadtxt('../'+run+'/run/injection.txt',unpack=True)
+    # Reads flux files
+    # Load data
+    t,enk,denk,henk,injk,jenk = np.loadtxt('../'+run+'/run/balance.txt',unpack=True)
 
-	injtot = injk+injm
+    injtot = injk
 
-	injtot = np.mean(injtot[start:])
+    injtot = np.mean(injtot[start:])
 
-        if rand!=0:
-        	injtot = 0.5*injtot
+    if rand!=0:
+        injtot = 0.5*injtot
 
-	fields = ['ktransfer','mtransfer','jtransfer','ktranpara','mtranpara','jtranpara','ktranperp','mtranperp','jtranperp']
+    fields = ['ktransfer','ktranpara','ktranperp']
 
-	# Averaging
-	for field in fields:
-#		print(field)
-        	for ii,ind in enumerate(inds):
-	        	# Load file names
-                	flux = sorted(glob.glob(path+field+'.'+str(ind)+'.txt'))[0]
-			# Load and Average File Names:
-			if ii==0:
-                		flux_avg = np.loadtxt(flux)[:,1]/float(numfiles)/injtot
-			else:
-				try: # Sometimes the saved file is corrupt if computation stopped in the middle of a save
-                			flux_avg += np.loadtxt(flux)[:,1]/float(numfiles)/injtot
-				except (KeyboardInterrupt, SystemExit):
-					raise
-				except: print("Error with file %s" % flux)
-		Data_E[field] = flux_avg
-	
-	Data_E['ks'] = np.loadtxt(flux)[:,0]
-        Data[run] = Data_E
+    # Averaging
+    for field in fields:
+        for ii,ind in enumerate(inds):
+            # Load file names
+            flux = sorted(glob.glob(path+field+'.'+str(ind)+'.txt'))[0]
+            # Load and Average File Names:
+            if ii==0:
+                flux_avg = np.loadtxt(flux)[:,1]/float(numfiles)/injtot
+            else:
+                try: # Sometimes the saved file is corrupt if computation stopped in the middle of a save
+                    flux_avg += np.loadtxt(flux)[:,1]/float(numfiles)/injtot
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except: print("Error with file %s" % flux)
+        Data_E[field] = flux_avg
+
+    Data_E['ks'] = np.loadtxt(flux)[:,0]
+    Data[run] = Data_E
 
 # Saving data:
 print "Saving Data"

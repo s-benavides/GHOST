@@ -12,158 +12,146 @@ import field_calc
 rule = string.maketrans('d', '0')
 
 # Get all the AvgTimeO*B*.txt files
-avglist = sorted(glob.glob('rundat/*T90*.txt'))
+avglist = sorted(glob.glob('rundat/AvgTimeO*.txt'))
 
 runnames = []
 for file in avglist:
-  run = file.split('rundat/AvgTime')[1]
-  run = run.split('.txt')[0]
-  if (('O50B10' in run)or('_rnd' in run)or('Pr_0d001' in run)or('_c' in run)or('movie' in run)):
+    run = file.split('rundat/AvgTime')[1]
+    run = run.split('.txt')[0]
+    if (('_2DF' in run)or('_old' in run)or('_nu' in run)or('O0N' in run)):
         pass
-  else:
+    else:
         runnames.append(run)
-
-# Drops runs that don't have perp/para outputs
-no_ebdata = []
-for run in runnames:
-  path = '../'+run+'/run/'
-  if not glob.glob(path+'ebperp_ebpara.txt'):
-    print("RUN %s doesn't have ebperp_ebpara data!" % run)
-    no_ebdata.append(run)
 
 Data = dict([])
 for i,run in enumerate(runnames):
-	Data_E = dict([])
-	print("Working on run %s " % run)
-	path = '../'+run+'/run/'
+    Data_E = dict([])
+    print(" ---------------- Working on run %s ---------------- " % run)
+    path = '../'+run+'/run/'
 
-	# Some run info
-	rinfo  = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=136,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    # Some run info
+    rand = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[5]
 
-	rand = rinfo[5]
+    sstep = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[3]
 
-	sstep = rinfo[3]
+    cstep = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[4]
 
-	cstep = rinfo[4]
+    omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=125,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
-	# Average start indices
-	[start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
+    Nx, Nz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=56,skip_header=130,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
-	start = int(start)
-	start_fl = int(start)
-	err_ind = int(err_ind)
+    print("omegaz = %s, Nx = %s, Nz = %s" % (omegaz,Nx,Nz))
 
-	# Reading rotation and B-field
-	b0x,b0y,b0z = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=65,skip_header=110,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    # Average start indices
+    [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
 
-	omegax,omegay,omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=56,skip_header=123,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    start = int(start)
+    start_fl = int(start)
+    err_ind = int(err_ind)
 
-	# Reads balance.txt
-        t,enk,enm,denk,denm,henk,henm,jxb = np.loadtxt(path+'balance.txt',unpack=True)
-        t2,injk,injm = np.loadtxt(path+'injection.txt',unpack=True)
-        t3,ufk,ufm = np.loadtxt(path+'uf.txt',unpack=True)
-	t4,eperp_B,epara_B,eperp_Omega,epara_Omega = np.loadtxt(path+'eperp_epara.txt',unpack=True)
-	if run not in no_ebdata:
-		t5,ebperp_B,ebpara_B,ebperp_Omega,ebpara_Omega = np.loadtxt(path+'ebperp_ebpara.txt',unpack=True)
-	else:
-		t5,ebperp_B,ebpara_B,ebperp_Omega,ebpara_Omega = np.loadtxt(path+'eperp_epara.txt',unpack=True)*np.nan
-	t6,khel,mhel = np.loadtxt(path+'helicity.txt',unpack=True)
-        params_nu = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=110,skip_header=41,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
-        params_mu = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=95,skip_header=61,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    # Reads balance.txt
+    t,enk,denk,henk,injk,jenk = np.loadtxt(path+'balance.txt',unpack=True)
+    t2,ufk = np.loadtxt(path+'uf.txt',unpack=True)
+    params_nu = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=116,skip_header=41,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
-        if len(t)!=len(t2):
-                tmin = np.min([len(t),len(t2)])
-        else:
-                tmin=len(t)
+    if len(t)!=len(t2):
+        tmin = np.min([len(t),len(t2)])
+    else:
+        tmin=len(t)
 
-        if rand!=0:
-		print("randomi forcing")
-                injk = injk/2.
-                injm = injm/2. # RANDOM FORCING
+    if rand==1:
+        injtot = injk/2. # RANDOM FORCING
+    elif rand==0:
+        injtot = injk
 
-        # nu,kf
-        nu = float(params_nu[4])
-        hnu = float(params_nu[5])
-        hek = float(params_nu[6])
-        hok = float(params_nu[7])
-        kdn = float(params_nu[2])
-        kup = float(params_nu[3])
-        kf = (kdn+kup)/2.
+    # nu,kf
+    nu = float(params_nu[4])
+    hnu = float(params_nu[5])
+    hek = float(params_nu[6])
+    hok = float(params_nu[7])
+    kdn = float(params_nu[2])
+    kup = float(params_nu[3])
+    kf = (kdn+kup)/2.
 
-        # mu,kf
-        mu = float(params_mu[4])
-        hmu = float(params_mu[5])
-        hem = float(params_mu[6])
-        hom = float(params_mu[7])
+    #print('rand',rand,'sstep',sstep,'cstep',cstep,'nu',nu,'hnu',hnu,'hek',hek,'kup',kup)
 
-	# list of observables to average:
-	olist = {'enk':enk,'enm':enm,'denk':denk,'denm':denm,'henk':henk,'henm':henm,'jxb':jxb,'injk':injk,'injm':injm,'ufk':ufk,'ufm':ufm,'eperp_B':eperp_B,'epara_B':epara_B,'eperp_Omega':eperp_Omega,'epara_Omega':epara_Omega,'ebperp_B':ebperp_B,'ebpara_B':ebpara_B,'ebperp_Omega':ebperp_Omega,'ebpara_Omega':ebpara_Omega,
-		'khel':khel,'mhel':mhel}
-	
-        # AVERAGING
-	Data_E = dict([])
-	for ii,obs in enumerate(olist):
-		avg = np.nanmean(olist[obs][start:])
-		err = bunch_err.bunch_err(olist[obs][start:],err_ind=err_ind)
-		Data_E[obs]=[avg,err]
+    # list of observables to average:
+    olist = {'enk':enk,'denk':denk,'henk':henk,'injk':injtot,'jenk':jenk,'ufk':ufk}
+                 
+    # AVERAGING
+    Data_E = dict([])
+    for ii,obs in enumerate(olist):
+        avg = np.nanmean(olist[obs][start:])
+        err = bunch_err.bunch_err(olist[obs][start:],err_ind=err_ind)
+        Data_E[obs]=[avg,err]
 
-        # Some calculations
+    # Some calculations
 
-	# vx^2, vy^2, vz^2
-	reso = 256
-	# Spatial resolution
-	NX = reso
-	NY = reso
-	NZ = reso
-	shape = (NX,NY,NZ)
+    ##################################### WORKING HERE
+    
+    # vx^2, vy^2, vz^2
+    reso = 256
+    # Spatial resolution
+    NX = reso
+    NY = reso
+    NZ = reso
+    shape = (NX,NY,NZ)
 
-	path = '../'+run+'/outs/'
-        tf = np.loadtxt('../'+run+'/run/time_field.txt')
-        outnum = str(int(tf[-1][0])) #raw_input("out num? ") #sys.argv[1]
-        outnum ="{:0>4s}".format(outnum)
+    path = '../'+run+'/outs/'
+    tf = np.loadtxt('../'+run+'/run/time_field.txt')
+    outnum = str(int(tf[-1][0])) #raw_input("out num? ") #sys.argv[1]
+    outnum ="{:0>4s}".format(outnum)
 
-        # Reads binary files
-        #psi = np.fromfile(path+'ps.'+outnum+'.out',dtype=np.float32).reshape(shape,order='F')
-	field_list = ['vx','vy','vz']#,'ax','ay','az','bx','by','bz','jx','jy','jz']
-	for field in field_list:
-        	filelist = sorted(glob.glob(path+field+'.'+outnum+'.out'))
-        	if len(filelist)==0:
-       	 	        print("Need to calculate output for %s. Calculating..." % field)
-	                field_calc.field_calc(run,field,outnum,reso=reso)
+    # Reads binary files
+    #psi = np.fromfile(path+'ps.'+outnum+'.out',dtype=np.float32).reshape(shape,order='F')
+    field_list = ['vx','vy','vz']#,'wx','wz']
+    for field in field_list:
+        filelist = sorted(glob.glob(path+field+'.'+outnum+'.out'))
+        if len(filelist)==0:
+            print("Need to calculate output for %s. Calculating..." % field)
+            field_calc.field_calc(run,field,outnum,reso=reso)
 
-		mean = 0.0
-		out = np.fromfile(path+field+'.'+outnum+'.out').reshape(shape)
-        	mean = np.sum(np.abs(out)**2)/float(reso)**3
-		Data_E[field]=mean		
+        mean = 0.0
+        out = np.fromfile(path+field+'.'+outnum+'.out').reshape(shape)
+        mean = np.mean(np.abs(out)**2)
+        Data_E[field]=mean
 
-#        Re_rms=np.sqrt(avg_ufk)/(nu*(kf)**(2*hek-1))
-        Re_rms=np.sqrt(Data_E['ufk'][0])/(nu*(kf)**(2*hek-1))
-        Rem_rms=np.sqrt(Data_E['ufm'][0])/(nu*(kf)**(2*hek-1))
-        Pr = nu/mu
+    mufk = np.sqrt(np.mean(ufk))
+    Re_kf=np.sqrt(np.mean(ufk))/(nu*(kf)**(2*hek-1))
+    print('run: %s, Re_rms: %f4' % (run,Re_kf))
+    Ro_kf = (mufk*kf)/(2*omegaz)
+    print("Ro(u(kf)) = %s" % Ro_kf)
+    N_kf = (Nx**2+2*Nx*Nz+Nz**2)/(kf*mufk)
+    print("N(u(kf)) = %s" % N_kf)
 
-	Data_E['Re_rms'] = Re_rms
-	Data_E['Pr'] = Pr
-	Data_E['nu'] = nu
-	Data_E['hnu'] = hnu
-	Data_E['mu'] = mu
-	Data_E['hmu'] = hmu
-	Data_E['hek'] = hek
-	Data_E['hok'] = hok
-	Data_E['hem'] = hem
-	Data_E['hom'] = hom
-	Data_E['kdn'] = kdn
-	Data_E['kup'] = kup
-	Data_E['kf'] = kf
-	Data_E['b0x'] = b0x
-	Data_E['b0y'] = b0y
-	Data_E['b0z'] = b0z
-	Data_E['omegax'] = omegax
-	Data_E['omegay'] = omegay
-	Data_E['omegaz'] = omegaz
-	Data_E['rand'] = rand
-		
-	Data[run] = Data_E
-	
+    u = ((4/5.)*np.mean(injtot)/kf)**(1/3.)
+    Re_inj=u/(nu*(kf)**(2*hek-1))
+    print('run: %s, Re_rms: %f4' % (run,Re_inj))
+    Ro_inj = (u*kf)/(2*omegaz)
+    print("Ro(inj) = %s" % Ro_inj)
+    N_inj = (Nx**2+2*Nx*Nz+Nz**2)/(kf*u)
+    print("N(inj) = %s" % N_inj)
+
+    Data_E['nu'] = nu
+    Data_E['hnu'] = hnu
+    Data_E['hek'] = hek
+    Data_E['hok'] = hok
+    Data_E['kdn'] = kdn
+    Data_E['kup'] = kup
+    Data_E['kf'] = kf
+    Data_E['Nx'] = Nx
+    Data_E['Nz'] = Nz
+    Data_E['omegaz'] = omegaz
+    Data_E['rand'] = rand
+    Data_E['Re_kf'] = Re_kf
+    Data_E['Ro_kf'] = Ro_kf
+    Data_E['N_kf'] = N_kf
+    Data_E['Re_inj'] = Re_inj
+    Data_E['Ro_inj'] = Ro_inj
+    Data_E['N_inj'] = N_inj
+    
+    Data[run] = Data_E
+
 # Saving data:
 print "Saving Data"
 name = 'rundat/DataAvg_'+str(date.today())+'.p'

@@ -24,7 +24,7 @@ for i in range(numspec):
 
 for jj,runname in enumerate(runnames):
   path = '../'+runname+'/outs/'
-  params_nu = np.genfromtxt('../'+runname+'/run/parameter.inp',comments='!',skip_footer=110,skip_header=41,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+  params_nu = np.genfromtxt('../'+runname+'/run/parameter.inp',comments='!',skip_footer=116,skip_header=41,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
   # nu,kf
   nu = float(params_nu[4])
   hnu = float(params_nu[5])
