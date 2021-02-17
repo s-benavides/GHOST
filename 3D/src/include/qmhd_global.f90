@@ -23,17 +23,17 @@
 ! Component energies!
 !
 
-      CALL energy(vx,0,0,tmp,1) ! <|vx|^2>
-      CALL energy(0,vy,0,tmq,1) ! <|vy|^2>
-      CALL energy(0,0,vz,tmr,1) ! <|vz|^2>
+      CALL energy(vx,0.0D0*vy,0.0D0*vz,tmp,1) ! <|vx|^2>
+      CALL energy(0.0D0*vx,vy,0.0D0*vz,tmq,1) ! <|vy|^2>
+      CALL energy(0.0D0*vx,0.0D0*vy,vz,tmr,1) ! <|vz|^2>
 
-      CALL energy_arbdir(vx,0,0,NNx,0.0,NNz,vxpe,vxpa) 
-      CALL energy_arbdir(0,vy,0,NNx,0.0,NNz,vype,vypa) 
-      CALL energy_arbdir(0,0,vz,NNx,0.0,NNz,vzpe,vzpa) 
+      CALL energy_arbdir(vx,0.0D0*vy,0.0D0*vz,NNx,0.0,NNz,vxpe,vxpa) 
+      CALL energy_arbdir(0.0D0*vx,vy,0.0D0*vz,NNx,0.0,NNz,vype,vypa) 
+      CALL energy_arbdir(0.0D0*vx,0.0D0*vy,vz,NNx,0.0,NNz,vzpe,vzpa) 
 
-      CALL energy_arbdir(vx,0,0,omegax,omegay,omegaz,vxpeo,vxpao)
-      CALL energy_arbdir(0,vy,0,omegax,omegay,omegaz,vypeo,vypao)
-      CALL energy_arbdir(0,0,vz,omegax,omegay,omegaz,vzpeo,vzpao)
+      CALL energy_arbdir(vx,0.0D0*vy,0.0D0*vz,omegax,omegay,omegaz,vxpeo,vxpao)
+      CALL energy_arbdir(0.0D0*vx,vy,0.0D0*vz,omegax,omegay,omegaz,vypeo,vypao)
+      CALL energy_arbdir(0.0D0*vx,0.0D0*vy,vz,omegax,omegay,omegaz,vzpeo,vzpao)
 
 !
       IF (myrank.eq.0) THEN
