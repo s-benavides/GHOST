@@ -221,7 +221,7 @@
       COMPLEX(KIND=GP) :: cdump,jdump
       COMPLEX(KIND=GP) :: cdumq,jdumq
       COMPLEX(KIND=GP) :: cdumr,jdumr
-      DOUBLE PRECISION :: tmp,tmq,tmr
+      DOUBLE PRECISION :: tmp,tmq,tmr,tmt
       DOUBLE PRECISION :: eps,epm
 !$    DOUBLE PRECISION, EXTERNAL :: omp_get_wtime
 
@@ -293,6 +293,8 @@
 #endif
 #ifdef QMHD_
       REAL(KIND=GP)    :: NNx, NNz
+      DOUBLE PRECISION :: vxpe,vxpa,vype,vypa,vzpe,vzpa
+      DOUBLE PRECISION :: vxpeo,vxpao,vypeo,vypao,vzpeo,vzpao
 #endif
 #ifdef ROTATION_
       REAL(KIND=GP)    :: omegax,omegay,omegaz
