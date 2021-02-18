@@ -1912,7 +1912,7 @@
                DO k = 1,nz
                   dot=kx(1)*v1+ky(j)*v2+kz(k)*v3
                   dot = abs(dot/(amp*sqrt(k2(k,j,1))))
-                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
+                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
                   dperp = dperp+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
                          abs(c(k,j,1))**2)*tmp
                   ELSE
@@ -1926,7 +1926,7 @@
                   DO k = 1,nz
                   dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
                   dot = abs(dot/(amp*sqrt(k2(k,j,i))))
-                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
+                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
                   dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                          abs(c(k,j,i))**2)*tmp
                   ELSE
@@ -1942,7 +1942,7 @@
                   DO k = 1,nz
                   dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
                   dot = abs(dot/(amp*sqrt(k2(k,j,i))))
-                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
+                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
                   dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                          abs(c(k,j,i))**2)*tmp
                   ELSE
