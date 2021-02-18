@@ -1864,7 +1864,7 @@
       END SUBROUTINE spec2D_yavg
 
 !*****************************************************************
-      SUBROUTINE energy_arbdir(a,b,c,k1,k2,k3,dpe,dpa)
+      SUBROUTINE energy_arbdir(a,b,c,v1,v2,v3,dpe,dpa)
 !-----------------------------------------------------------------
 !
 ! Computes the mean energy perpendicular to the vector (k1,k2,k3),
@@ -1875,9 +1875,9 @@
 !     a  : input matrix in the x-direction
 !     b  : input matrix in the y-direction
 !     c  : input matrix in the z-direction
-!     k1 : x-component of 'parallel' vector
-!     k2 : y-component of 'parallel' vector
-!     k3 : z-component of 'parallel' vector
+!     v1 : x-component of 'parallel' vector
+!     v2 : y-component of 'parallel' vector
+!     v3 : z-component of 'parallel' vector
 !     dpe: at the output contains the energy perpendicular 
 !     dpa: at the output contains the energy parallel
 
@@ -1892,8 +1892,8 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
       DOUBLE PRECISION, INTENT(OUT) :: dpe,dpa
-      DOUBLE PRECISION              :: dpara,dperp,test
-      REAL(KIND=GP), INTENT(IN) :: k1,k2,k3
+      DOUBLE PRECISION              :: dpara,dperp
+      REAL(KIND=GP), INTENT(IN) :: v1,v2,v3
       REAL(KIND=GP)                 :: tmp,dot,amp
       INTEGER             :: i,j,k
 
@@ -1902,22 +1902,17 @@
       tmp = 1.0_GP/ &
             (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
 
-      amp = sqrt(k1**2+k2**2+k3**2)
+      amp = sqrt(v1**2+v2**2+v3**2)
       
-      test = 0.0D0
-
 !
 ! Computes the kinetic energy
 !
          IF (ista.eq.1) THEN
             DO j = 1,ny
                DO k = 1,nz
-                  dot=kx(1)*k1+ky(j)*k2+kz(k)*k3
-                  dot = abs(dot/amp)
-                  IF ((dot.ge.0.0).and.(dot.le.0.5)) THEN
-!                  print*,"k1,k2,k3",k1,k2,k3,"kx(1),ky(j),kz(k),",&
-!                        kx(1),ky(j),kz(k),"dot prod: ",dot
-!                  test = test+1
+                  dot=kx(1)*v1+ky(j)*v2+kz(k)*v3
+                  dot = abs(dot/(amp*sqrt(k2(k,j,1))))
+                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
                   dperp = dperp+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
                          abs(c(k,j,1))**2)*tmp
                   ELSE
@@ -1929,12 +1924,9 @@
             DO i = 2,iend
                DO j = 1,ny
                   DO k = 1,nz
-                    dot=kx(i)*k1+ky(j)*k2+kz(k)*k3
-                  dot = abs(dot/amp)
-                  IF ((dot.ge.0.0).and.(dot.le.0.5)) THEN
-!                  print*,"k1,k2,k3",k1,k2,k3,"kx(i),ky(j),kz(k),",&
-!                        kx(i),ky(j),kz(k),"dot prod: ",dot
-!                  test = test+2
+                  dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
+                  dot = abs(dot/(amp*sqrt(k2(k,j,i))))
+                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
                   dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                          abs(c(k,j,i))**2)*tmp
                   ELSE
@@ -1948,12 +1940,9 @@
             DO i = ista,iend
                DO j = 1,ny
                   DO k = 1,nz
-                    dot=kx(i)*k1+ky(j)*k2+kz(k)*k3
-                  dot = abs(dot/amp)
-                  IF ((dot.ge.0.0).and.(dot.le.0.5)) THEN
-!                  print*,"k1,k2,k3",k1,k2,k3,"kx(i),ky(j),kz(k),",&
-!                        kx(i),ky(j),kz(k),"dot prod: ",dot
-!                  test = test+2
+                  dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
+                  dot = abs(dot/(amp*sqrt(k2(k,j,i))))
+                  IF ((dot.ge.0.0).and.(dot.le.0.015)) THEN
                   dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                          abs(c(k,j,i))**2)*tmp
                   ELSE
@@ -1965,10 +1954,6 @@
             END DO
           ENDIF
 
-!         CALL MPI_REDUCE(test,dpe,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
-!                      MPI_COMM_WORLD,ierr)
-
-!         if (myrank.eq.0) print*,dpe
 !
 ! Computes the reduction between nodes
 !
