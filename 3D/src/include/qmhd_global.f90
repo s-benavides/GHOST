@@ -8,7 +8,7 @@
        
       tmp = 0.0D0
       tmq = 0.0D0                            !dpe,dpa
-      CALL energy_arbdir(vx,vy,vz,NNx,0.0,NNz,tmp,tmq)
+      CALL energy_arbdir(vx,vy,vz,NNx,0.0D0,NNz,tmp,tmq)
       tmr = 0.0D0
       tmt = 0.0D0
       CALL energy_arbdir(vx,vy,vz,omegax,omegay,omegaz,tmr,tmt)
@@ -27,9 +27,9 @@
       CALL energy(0.0D0*vx,vy,0.0D0*vz,tmq,1) ! <|vy|^2>
       CALL energy(0.0D0*vx,0.0D0*vy,vz,tmr,1) ! <|vz|^2>
 
-      CALL energy_arbdir(vx,0.0D0*vy,0.0D0*vz,NNx,0.0,NNz,vxpe,vxpa) 
-      CALL energy_arbdir(0.0D0*vx,vy,0.0D0*vz,NNx,0.0,NNz,vype,vypa) 
-      CALL energy_arbdir(0.0D0*vx,0.0D0*vy,vz,NNx,0.0,NNz,vzpe,vzpa) 
+      CALL energy_arbdir(vx,0.0D0*vy,0.0D0*vz,NNx,0.0D0,NNz,vxpe,vxpa) 
+      CALL energy_arbdir(0.0D0*vx,vy,0.0D0*vz,NNx,0.0D0,NNz,vype,vypa) 
+      CALL energy_arbdir(0.0D0*vx,0.0D0*vy,vz,NNx,0.0D0,NNz,vzpe,vzpa) 
 
       CALL energy_arbdir(vx,0.0D0*vy,0.0D0*vz,omegax,omegay,omegaz,vxpeo,vxpao)
       CALL energy_arbdir(0.0D0*vx,vy,0.0D0*vz,omegax,omegay,omegaz,vypeo,vypao)
