@@ -1892,9 +1892,9 @@
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
       COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
       DOUBLE PRECISION, INTENT(OUT) :: dpe,dpa
-      DOUBLE PRECISION              :: dpara,dperp
+      DOUBLE PRECISION              :: dpara,dperp,thresh
       REAL(KIND=GP), INTENT(IN) :: v1,v2,v3
-      REAL(KIND=GP)                 :: tmp,dot,amp
+      REAL(KIND=GP)                 :: tmp,dot,amp,co
       INTEGER             :: i,j,k
 
       dperp = 0.0D0
@@ -1903,57 +1903,67 @@
             (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
 
       amp = sqrt(v1**2+v2**2+v3**2)
-
+      
+      IF (((v1.eq.0.0).and.(v2.eq.0.0)).or.((v1.eq.0.0).and.(v3.eq.0.0)).or.((v2.eq.0.0).and.(v3.eq.0.0))) THEN
+          thresh= 0.000001D0
+      ELSE
+          thresh = 1.8101933598375617/real(nx,kind=GP)
+      ENDIF
 !
 ! Computes the kinetic energy
 !
-         IF (ista.eq.1) THEN
-            DO j = 1,ny
-               DO k = 1,nz
-                  dot=kx(1)*v1+ky(j)*v2+kz(k)*v3
-                  dot = abs(dot/(amp*sqrt(kk2(k,j,1))))
-                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
-                  dperp = dperp+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
-                         abs(c(k,j,1))**2)*tmp
-                  ELSE
-                  dpara = dpara+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
-                         abs(c(k,j,1))**2)*tmp
-                  ENDIF
-               END DO
-            END DO
-            DO i = 2,iend
-               DO j = 1,ny
-                  DO k = 1,nz
-                  dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
-                  dot = abs(dot/(amp*sqrt(kk2(k,j,i))))
-                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
-                  dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                         abs(c(k,j,i))**2)*tmp
-                  ELSE
-                  dpara = dpara+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                         abs(c(k,j,i))**2)*tmp
-                  ENDIF
-                  END DO
-               END DO
-            END DO
-          ELSE
-            DO i = ista,iend
-               DO j = 1,ny
-                  DO k = 1,nz
-                  dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
-                  dot = abs(dot/(amp*sqrt(kk2(k,j,i))))
-                  IF ((dot.ge.0.0).and.(dot.le.(1.8101933598375617/real(nx,kind=GP)))) THEN
-                  dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                         abs(c(k,j,i))**2)*tmp
-                  ELSE
-                  dpara = dpara+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
-                         abs(c(k,j,i))**2)*tmp
-                  ENDIF
-                  END DO
-               END DO
-            END DO
-          ENDIF
+      IF (amp.gt.0) THEN 
+              IF (ista.eq.1) THEN
+                DO j = 1,ny
+                   DO k = 1,nz
+                      dot=kx(1)*v1+ky(j)*v2+kz(k)*v3
+                      co = abs(dot)/(amp*sqrt(kk2(k,j,1)))
+                      IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+                      dperp = dperp+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
+                             abs(c(k,j,1))**2)*tmp
+                      ELSE
+                      dpara = dpara+(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
+                             abs(c(k,j,1))**2)*tmp
+                      ENDIF
+                   END DO
+                END DO
+                DO i = 2,iend
+                   DO j = 1,ny
+                      DO k = 1,nz
+                      dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
+                      co = abs(dot)/(amp*sqrt(kk2(k,j,i)))
+                      IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+                      dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                             abs(c(k,j,i))**2)*tmp
+                      ELSE
+                      dpara = dpara+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                             abs(c(k,j,i))**2)*tmp
+                      ENDIF
+                      END DO
+                   END DO
+                END DO
+              ELSE
+                DO i = ista,iend
+                   DO j = 1,ny
+                      DO k = 1,nz
+                      dot=kx(i)*v1+ky(j)*v2+kz(k)*v3
+                      co = abs(dot)/(amp*sqrt(kk2(k,j,i)))
+                      IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+                      dperp = dperp+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                             abs(c(k,j,i))**2)*tmp
+                      ELSE
+                      dpara = dpara+2*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                             abs(c(k,j,i))**2)*tmp
+                      ENDIF
+                      END DO
+                   END DO
+                END DO
+              ENDIF
 
+          ELSE 
+              dperp= 0.0D0
+              dpara = 0.0D0
+          ENDIF
 !
 ! Computes the reduction between nodes
 !

@@ -147,6 +147,7 @@ CMHDB_OBJS     = $(CMHD_OBJS) pseudospec3D_rot.o pseudospec3D_prot.o
 CHMHD_OBJS     = $(CMHD_OBJS)
 CHMHDB_OBJS    = $(CMHDB_OBJS)
 ROTH_OBJS      = $(HD_OBJS) pseudospec3D_rot.o
+QMHD_OBJS      = $(ROTH_OBJS)
 PROTH_OBJS     = $(PHD_OBJS) pseudospec3D_rot.o pseudospec3D_prot.o
 MPROTH_OBJS    = $(PROTH_OBJS) 
 BOUSS_OBJS     = $(PROTH_OBJS) pseudospec3D_bouss.o

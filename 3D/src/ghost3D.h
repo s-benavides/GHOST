@@ -144,6 +144,15 @@
 #define INCLUDEFNAME_ 'roth_
 #endif 
 
+#ifdef QMHD_SOL
+#define DNS_
+#define VELOC_
+#define ROTATION_
+#define CFL_
+#define QMHD_
+#define INCLUDEFNAME_ 'qmhd_
+#endif
+
 #ifdef PROTH_SOL
 #define DNS_
 #define VELOC_
