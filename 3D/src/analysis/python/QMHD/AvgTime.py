@@ -113,7 +113,10 @@ plt.tight_layout()
 plt.show()
 
 start = input('Enter x-axis value you want to start averaging: ')
-start_fl = start/float(sstep/cstep)        #starting flux and spectra number
+tstart = t[start]
+tspec = np.loadtxt('../'+runname+'/run/time_spec.txt')
+ind = np.argmin(abs(tspec[:,1]-tstart))
+start_fl = int(tspec[ind][0])        #starting flux and spectra number
 
 # Bunching algorithm error index:
 bunch_err.bunch_err(enk[start:])
