@@ -52,12 +52,9 @@ for i,run in enumerate(runnames):
     # Reads balance.txt
     t,enk,denk,henk,injk,jenk = np.loadtxt(path+'balance.txt',unpack=True)
     t2,ufk = np.loadtxt(path+'uf.txt',unpack=True)
+    t3,eperp_b,epara_b, eperp_o, epara_o = np.loadtxt(path+'eperp_epara.txt',unpack=True)
+    t4,KEx,KEy,KEz,KEx_perp_b,KEx_para_b,KEy_perp_b,KEy_para_b,KEz_perp_b,KEz_para_b,KEx_perp_o,KEx_para_o,KEy_perp_o,KEy_para_o,KEz_perp_o,KEz_para_o = np.loadtxt(path+'components.txt',unpack=True)
     params_nu = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=116,skip_header=41,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
-
-    if len(t)!=len(t2):
-        tmin = np.min([len(t),len(t2)])
-    else:
-        tmin=len(t)
 
     if rand==1:
         injtot = injk/2. # RANDOM FORCING
@@ -76,7 +73,11 @@ for i,run in enumerate(runnames):
     #print('rand',rand,'sstep',sstep,'cstep',cstep,'nu',nu,'hnu',hnu,'hek',hek,'kup',kup)
 
     # list of observables to average:
-    olist = {'enk':enk,'denk':denk,'henk':henk,'injk':injtot,'jenk':jenk,'ufk':ufk}
+    olist = {'enk':enk,'denk':denk,'henk':henk,'injk':injtot,'jenk':jenk,'ufk':ufk,
+            'eperp_b':eperp_b,'epara_b':epara_b,'eperp_o':eperp_o,'epara_o':epara_o,
+            'KEx':KEx,'KEy':KEy,'KEz':KEz,'KEx_perp_b':KEx_perp_b,'KEx_para_b':KEx_para_b,
+            'KEy_perp_b':KEy_perp_b,'KEy_para_b':KEy_para_b,'KEz_perp_b':KEz_perp_b,'KEz_para_b':KEz_para_b,
+            'KEx_perp_o':KEx_perp_o,'KEx_para_o':KEx_para_o,'KEy_perp_o':KEy_perp_o,'KEy_para_o':KEy_para_o,'KEz_perp_o':KEz_perp_o,'KEz_para_o':KEz_para_o}
                  
     # AVERAGING
     Data_E = dict([])
@@ -85,37 +86,8 @@ for i,run in enumerate(runnames):
         err = bunch_err.bunch_err(olist[obs][start:],err_ind=err_ind)
         Data_E[obs]=[avg,err]
 
-    # Some calculations
-
-    ##################################### WORKING HERE
     
-    # vx^2, vy^2, vz^2
-    reso = 256
-    # Spatial resolution
-    NX = reso
-    NY = reso
-    NZ = reso
-    shape = (NX,NY,NZ)
-
-    path = '../'+run+'/outs/'
-    tf = np.loadtxt('../'+run+'/run/time_field.txt')
-    outnum = str(int(tf[-1][0])) #raw_input("out num? ") #sys.argv[1]
-    outnum ="{:0>4s}".format(outnum)
-
-    # Reads binary files
-    #psi = np.fromfile(path+'ps.'+outnum+'.out',dtype=np.float32).reshape(shape,order='F')
-    field_list = ['vx','vy','vz']#,'wx','wz']
-    for field in field_list:
-        filelist = sorted(glob.glob(path+field+'.'+outnum+'.out'))
-        if len(filelist)==0:
-            print("Need to calculate output for %s. Calculating..." % field)
-            field_calc.field_calc(run,field,outnum,reso=reso)
-
-        mean = 0.0
-        out = np.fromfile(path+field+'.'+outnum+'.out').reshape(shape)
-        mean = np.mean(np.abs(out)**2)
-        Data_E[field]=mean
-
+    # Some calculations
     mufk = np.sqrt(np.mean(ufk))
     Re_kf=np.sqrt(np.mean(ufk))/(nu*(kf)**(2*hek-1))
     print('run: %s, Re_rms: %f4' % (run,Re_kf))
