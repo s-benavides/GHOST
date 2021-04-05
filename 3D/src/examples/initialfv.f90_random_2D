@@ -43,7 +43,7 @@
 
 ! Notes:
 ! - curl(C1,C2,C3) = (fx,fy,fz)
-! - Forces ONLY 2D modes
+! - Forces ONLY kz = 0 modes (2D modes)
 ! - Have: |C| = 1/kf so that |F| = f0 in the end.
 ! - If I use this with f0 = f0/sqrt(dt), will this give me an energy injection of 
 !   f0^2 as I would guess?
