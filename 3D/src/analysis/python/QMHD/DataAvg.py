@@ -18,7 +18,7 @@ runnames = []
 for file in avglist:
     run = file.split('rundat/AvgTime')[1]
     run = run.split('.txt')[0]
-    if (('_2DF' in run)or('_old' in run)or('_nu' in run)or('O0N' in run)):
+    if (('_old' in run)or('_nu' in run)or('O0N' in run)):
         pass
     else:
         runnames.append(run)
@@ -96,7 +96,7 @@ for i,run in enumerate(runnames):
     N_kf = (Nx**2+2*Nx*Nz+Nz**2)/(kf*mufk)
     print("N(u(kf)) = %s" % N_kf)
 
-    u = ((4/5.)*np.mean(injtot)/kf)**(1/3.)
+    u = (np.mean(injtot)/kf)**(1/3.)
     Re_inj=u/(nu*(kf)**(2*hek-1))
     print('run: %s, Re_rms: %f4' % (run,Re_inj))
     Ro_inj = (u*kf)/(2*omegaz)
