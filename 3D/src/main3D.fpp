@@ -295,6 +295,8 @@
       REAL(KIND=GP)    :: NNx, NNz
       DOUBLE PRECISION :: vxpe,vxpa,vype,vypa,vzpe,vzpa
       DOUBLE PRECISION :: vxpeo,vxpao,vypeo,vypao,vzpeo,vzpao
+      DOUBLE PRECISION :: thresh,dot,co,amp ! For k.B_0 = 0 forcing (used in
+                                            ! initialfv.f90_random_2D_QMHD)
 #endif
 #ifdef ROTATION_
       REAL(KIND=GP)    :: omegax,omegay,omegaz
