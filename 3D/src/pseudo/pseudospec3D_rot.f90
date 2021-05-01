@@ -1867,7 +1867,7 @@
       SUBROUTINE energy_arbdir(a,b,c,v1,v2,v3,dpe,dpa)
 !-----------------------------------------------------------------
 !
-! Computes the mean energy perpendicular to the vector (k1,k2,k3),
+! Computes the mean energy perpendicular to the vector (v1,v2,v3),
 ! as well as the mean energy parallel to that vector.
 ! The output is only valid in the first node.
 !
@@ -1907,7 +1907,7 @@
       IF (((v1.eq.0.0).and.(v2.eq.0.0)).or.((v1.eq.0.0).and.(v3.eq.0.0)).or.((v2.eq.0.0).and.(v3.eq.0.0))) THEN
           thresh= 0.000001D0
       ELSE
-          thresh = 1.8101933598375617/real(nx,kind=GP)
+          thresh =  (2.0D0+1/15.0D0)/real(nx,kind=GP) ! Threshold based on value which includes the same number of modes which would be included in the condition of kx==0, for example. This value is 'optimized' for 256 resolution and contains up to 99% of the number of modes as the kx==0 condition.
       ENDIF
 !
 ! Computes the kinetic energy
