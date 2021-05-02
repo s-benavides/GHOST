@@ -37,7 +37,7 @@
          DO j = 2,ny/2+1
             dot = kx(1)*NNx+kz(1)*NNz
             co = abs(dot)/(amp*sqrt(kk2(1,j,1)))
-            IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+            IF ((kk2(1,j,1).le.kup**2).and.(kk2(1,j,1).ge.kdn**2).and.(co.ge.0.0).and.(co.le.thresh)) THEN
                dump = 1./sqrt(kk2(1,j,1))
                phase = 2*pi*randu(seed)
                C1(1,j,1) = (COS(phase)+im*SIN(phase))*dump
@@ -62,7 +62,7 @@
          DO k = 2,nz/2+1
             dot = kx(1)*NNx+kz(k)*NNz
             co = abs(dot)/(amp*sqrt(kk2(k,1,1)))
-            IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+            IF ((kk2(k,1,1).le.kup**2).and.(kk2(k,1,1).ge.kdn**2).and.(co.ge.0.0).and.(co.le.thresh)) THEN
                dump = 1./sqrt(kk2(k,1,1))
                phase = 2*pi*randu(seed)
                C1(k,1,1) = (COS(phase)+im*SIN(phase))*dump
@@ -88,7 +88,7 @@
             DO k = 2,nz/2+1
             dot = kx(1)*NNx+kz(k)*NNz
             co = abs(dot)/(amp*sqrt(kk2(k,j,1)))
-            IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+            IF ((kk2(k,j,1).le.kup**2).and.(kk2(k,j,1).ge.kdn**2).and.(co.ge.0.0).and.(co.le.thresh)) THEN
                dump = 1./sqrt(kk2(k,j,1))
                phase = 2*pi*randu(seed)
                C1(k,j,1) = (COS(phase)+im*SIN(phase))*dump
@@ -116,7 +116,7 @@
                DO k = 1,nz
                dot = kx(i)*NNx+kz(k)*NNz
                co = abs(dot)/(amp*sqrt(kk2(k,j,i)))
-               IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2).and.(co.ge.0.0).and.(co.le.thresh)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
                   C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
@@ -139,7 +139,7 @@
                DO k = 1,nz
                dot = kx(i)*NNx+kz(k)*NNz
                co = abs(dot)/(amp*sqrt(kk2(k,j,i)))
-               IF ((co.ge.0.0).and.(co.le.thresh)) THEN
+               IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2).and.(co.ge.0.0).and.(co.le.thresh)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
                   C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
