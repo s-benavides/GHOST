@@ -1,4 +1,4 @@
-! Step 2 of Runge-Kutta for the HD equations in a rotating frame
+! Step 2 of Runge-Kutta for the quasistatic MHD equations in a rotating frame
 ! Computes the nonlinear terms and evolves the equations in dt/o
 
          CALL prodre3(vx,vy,vz,C4,C5,C6)
@@ -7,8 +7,11 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k)
             DO j = 1,ny
                DO k = 1,nz
-                  C4(k,j,i) = C4(k,j,i)-2*omegaz*vy(k,j,i)
-                  C5(k,j,i) = C5(k,j,i)+2*omegaz*vx(k,j,i)
+                  !C4(k,j,i) = C4(k,j,i)-2*omegaz*vy(k,j,i)
+                  !C5(k,j,i) = C5(k,j,i)+2*omegaz*vx(k,j,i)
+                  C4(k,j,i) = C4(k,j,i)+2*(omegay*vz(k,j,i)-omegaz*vy(k,j,i))
+                  C5(k,j,i) = C5(k,j,i)+2*(omegaz*vx(k,j,i)-omegax*vz(k,j,i))
+                  C6(k,j,i) = C6(k,j,i)+2*(omegax*vy(k,j,i)-omegay*vx(k,j,i)) 
                END DO
             END DO
          END DO
