@@ -12,10 +12,10 @@ rule = string.maketrans('d', '0')
 
 # Path to the data
 Otemp = raw_input("What O value? ")
-Btemp = raw_input("What Nx value? ")
-Ttemp = raw_input("What Nz value? ")
+Ntemp = raw_input("What N value? ")
+Ttemp = raw_input("What T value? ")
 
-runname = 'O'+Otemp+'Nx'+Btemp+'Nz'+Ttemp
+runname = 'O'+Otemp+'N'+Ntemp+'T'+Ttemp
 
 path = '../'+runname+'/run/'
 
@@ -25,11 +25,12 @@ sstep = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_hea
 
 cstep = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[4]
 
-omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=125,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+omegax,omegay,omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=123,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+#omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=125,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
 Nx, Nz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=56,skip_header=130,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
-print("omegaz = %s, Nx = %s, Nz = %s" % (omegaz,Nx,Nz))
+print("omegax = %s, omegaz = %s, Nx = %s, Nz = %s" % (omegax,omegaz,Nx,Nz))
 
 # Reads balance.txt
 t,enk,denk,henk,injk,jenk = np.loadtxt(path+'balance.txt',unpack=True)
@@ -79,13 +80,13 @@ print('run: %s, mean inj: %f4' % (runname,minjk))
 Re_rms=np.sqrt(np.mean(ufk))/(nu*(kf)**(2*hek-1))
 print('run: %s, Re_rms: %f4' % (runname,Re_rms))
 
-Ro = (mufk*kf)/(2*omegaz)
+Ro = (mufk*kf)/(2*np.sqrt(omegaz**2+omegax**2))
 print("Ro(u(kf)) = %s" % Ro)
 N = (Nx**2+2*Nx*Nz+Nz**2)/(kf*mufk)
 print("N(u(kf)) = %s" % N)
 
 u = ((4/5.)*injtot/kf)**(1/3.)
-Ro = (u*kf)/(2*omegaz)
+Ro = (u*kf)/(2*np.sqrt(omegaz**2+omegax**2))
 print("Ro(inj) = %s" % Ro)
 N = (Nx**2+2*Nx*Nz+Nz**2)/(kf*u)
 print("N(inj) = %s" % N)

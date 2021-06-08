@@ -36,11 +36,11 @@ for i,run in enumerate(runnames):
 
     cstep = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[4]
 
-    omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=125,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    omegax,omegay,omegaz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=60,skip_header=123,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
     Nx, Nz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=56,skip_header=130,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
-    print("omegaz = %s, Nx = %s, Nz = %s" % (omegaz,Nx,Nz))
+    print("omegax = %s, omegaz = %s, Nx = %s, Nz = %s" % (omegax,omegaz,Nx,Nz))
 
     # Average start indices
     [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
@@ -91,7 +91,7 @@ for i,run in enumerate(runnames):
     mufk = np.sqrt(np.mean(ufk))
     Re_kf=np.sqrt(np.mean(ufk))/(nu*(kf)**(2*hek-1))
     print('run: %s, Re_rms: %f4' % (run,Re_kf))
-    Ro_kf = (mufk*kf)/(2*omegaz)
+    Ro_kf = (mufk*kf)/(2*np.sqrt(omegaz**2+omegax**2))
     print("Ro(u(kf)) = %s" % Ro_kf)
     N_kf = (Nx**2+2*Nx*Nz+Nz**2)/(kf*mufk)
     print("N(u(kf)) = %s" % N_kf)
@@ -99,7 +99,7 @@ for i,run in enumerate(runnames):
     u = (np.mean(injtot)/kf)**(1/3.)
     Re_inj=u/(nu*(kf)**(2*hek-1))
     print('run: %s, Re_rms: %f4' % (run,Re_inj))
-    Ro_inj = (u*kf)/(2*omegaz)
+    Ro_inj = (u*kf)/(2*np.sqrt(omegaz**2+omegax**2))
     print("Ro(inj) = %s" % Ro_inj)
     N_inj = (Nx**2+2*Nx*Nz+Nz**2)/(kf*u)
     print("N(inj) = %s" % N_inj)
@@ -113,6 +113,7 @@ for i,run in enumerate(runnames):
     Data_E['kf'] = kf
     Data_E['Nx'] = Nx
     Data_E['Nz'] = Nz
+    Data_E['omegax'] = omegax
     Data_E['omegaz'] = omegaz
     Data_E['rand'] = rand
     Data_E['Re_kf'] = Re_kf

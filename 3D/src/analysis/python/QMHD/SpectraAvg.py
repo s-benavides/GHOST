@@ -10,68 +10,62 @@ from datetime import date
 rule = string.maketrans('d', '0')
 
 # Get all the AvgTimeO*B*.txt files
-avglist = sorted(glob.glob('rundat/*T90.txt'))
+avglist = sorted(glob.glob('rundat/AvgTimeO*.txt'))
 
 runnames = []
 for file in avglist:
-  run = file.split('rundat/AvgTime')[1]
-  run = run.split('.txt')[0]
-  runnames.append(run)
+    run = file.split('rundat/AvgTime')[1]
+    run = run.split('.txt')[0]
+    runnames.append(run)
 
 Data = dict([])
 for i,run in enumerate(runnames):
-        Data_E = dict([])
-        print("Working on run %s " % run)
-        path = '../'+run+'/outs/'
-	
-	 # Average start indices
-        [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
+    Data_E = dict([])
+    print("Working on run %s " % run)
+    path = '../'+run+'/outs/'
 
-        start = int(start)
-        start_fl = int(start_fl)
+    # Average start indices
+    [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
 
-	rinfo  = np.genfromtxt('../'+run+'/run/parameter.inp',comments='!',skip_footer=136,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+    start = int(start)
+    start_fl = int(start_fl)
 
-        rand = rinfo[5]	
+    rand = np.genfromtxt('../'+run+'/run/parameter.inp',comments='!',skip_footer=142,skip_header=15,converters={2:  lambda val: float(val.translate(rule))},usecols=2)[5]
 
-	inds = []
-	files = sorted(glob.glob(path+'kspectrum.*.txt'))
+
+    fields = ['kspectrum','kspecparax']
+
+    # Averaging
+    for field in fields:
+        
+        inds = []
+        files = sorted(glob.glob(path+field+'.*.txt'))
         for file in files:
-                num = file.split(path+'kspectrum.')[1]
-                num = num.split('.txt')[0]
-                if (int(num)>=start_fl):
-                        inds.append(num)
-
-
+            num = file.split(path+field+'.')[1]
+            num = num.split('.txt')[0]
+            if (int(num)>=start_fl):
+                inds.append(num)
+        
         numfiles = int(len(inds))
         print('%s files to average' % numfiles)
 
+        for ii,ind in enumerate(inds):
+            # Load file names
+            flux = sorted(glob.glob(path+field+'.'+str(ind)+'.txt'))[0]
+            # Load and Average File Names:
+            if ii==0:
+                flux_avg = np.loadtxt(flux)[:,1]/float(numfiles)
+            else:
+                try: # Sometimes the saved file is corrupt if computation stopped in the middle of a save
+                    flux_avg += np.loadtxt(flux)[:,1]/float(numfiles)
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except: print("Error with file %s" % flux)
+                    
+        Data_E[field] = flux_avg
 
-        # Reads flux files
-        if rand!=0:
-        	injtot = 0.5*injtot
-
-	fields = ['kspectrum','mspectrum','kspecperp','mspecperp','kspecpara','mspecpara']
-
-	# Averaging
-	for field in fields:
-        	for ii,ind in enumerate(inds):
-	        	# Load file names
-                	flux = sorted(glob.glob(path+field+'.'+str(ind)+'.txt'))[0]
-			# Load and Average File Names:
-                        if ii==0:
-                                flux_avg = np.loadtxt(flux)[:,1]/float(numfiles)
-                        else:
-                                try: # Sometimes the saved file is corrupt if computation stopped in the middle of a save
-                                        flux_avg += np.loadtxt(flux)[:,1]/float(numfiles)
-                                except (KeyboardInterrupt, SystemExit):
-                                        raise
-                                except: print("Error with file %s" % flux)
-	
-		Data_E[field] = flux_avg
-	
-	Data_E['ks'] = np.loadtxt(flux)[:,0]
-        Data[run] = Data_E
+    Data_E['ks'] = np.loadtxt(flux)[:,0]
+    Data[run] = Data_E
 
 # Saving data:
 print "Saving Data"
