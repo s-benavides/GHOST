@@ -336,6 +336,320 @@
       END SUBROUTINE specpara
 
 !*****************************************************************
+      SUBROUTINE specpara_x(a,b,c,nmb,kin,hel,odir)
+!-----------------------------------------------------------------
+!
+! Computes the reduced energy and helicity power spectrum 
+! in the direction parallel to the preferred direction 
+! (rotation, gravity, or uniform magnetic field, assumed
+! to be in the x-direction). As a result, the k-shells
+! are planes with normal (kx,0,0), kx = Dkx*(0,...,nx/2).
+! Normalization of the reduced spectrum is such that
+! E = sum[E(kx).Dkx], where Dkx is the width of the Fourier
+! shells in kx. The output is written to a file by the
+! first node.        
+!
+! Output files contain:
+! 'kspecpara.XXX.txt': kx, Ev(kx), Ev_perp(kx), Ev_x(kx)
+!   [Ev: kinetic energy; Ev_perp: energy in vy,vz; Ev_x: same in vx]        
+! 'mspecpara.XXX.txt': kx, Eb(kx), Eb_perp(kx), Eb_z(kx)
+! 'khelipara.XXX.txt': kx, Hv(kx), Hv_perp(kx), Hv_z(kx)
+!   [Hv: kinetic helicity; Hv_perp: v_perp.w_perp, Hv_x: vx.wx]
+! 'mhelipara.XXX.txt': kx, Hb(kx), Hb_perp(kx), Hb_z(kx)
+! 'ghelipara.XXX.txt': kx, G(kx)  ,G_perp(kx) , G_x(kx) 
+!   [Generalized helicity in Hall-MHD]
+!
+! Parameters
+!     a  : input matrix in the x-direction
+!     b  : input matrix in the y-direction
+!     c  : input matrix in the z-direction
+!     nmb: the extension used when writting the file
+!     kin: =2 skips energy spectrum computation
+!          =1 computes the kinetic spectrum
+!          =0 computes the magnetic spectrum
+!     hel: =1 computes the helicity spectrum
+!          =0 skips helicity spectrum computation
+!     odir: output directory
+!
+      USE fprecision
+      USE commtypes
+      USE kes
+      USE grid
+      USE mpivars
+      USE filefmt
+      USE boxsize
+!$    USE threads
+      IMPLICIT NONE
+
+      DOUBLE PRECISION, DIMENSION(nx/2+1) :: Ek,Ektot
+      DOUBLE PRECISION, DIMENSION(nx/2+1) :: Ekh,Ekhtot
+      DOUBLE PRECISION, DIMENSION(nx/2+1) :: Ekv,Ekvtot
+      DOUBLE PRECISION    :: tmq,tmr
+      COMPLEX(KIND=GP), INTENT(IN), DIMENSION(nz,ny,ista:iend) :: a,b,c
+      COMPLEX(KIND=GP), DIMENSION(nz,ny,ista:iend)          :: c1,c2,c3
+      REAL(KIND=GP)       :: tmp
+      INTEGER, INTENT(IN) :: kin,hel
+      INTEGER             :: i,j,k
+      INTEGER             :: kmn
+      CHARACTER(len=*), INTENT(IN) :: nmb
+      CHARACTER(len=*), INTENT(IN) :: odir
+!
+! Sets Ek to zero
+!
+      DO k = 1,nx/2+1
+         Ek (k) = 0.0D0
+         Ekh(k) = 0.0D0
+         Ekv(k) = 0.0D0
+      END DO
+!
+! Computes the curl of the field if needed
+!
+      IF ((kin.eq.0).or.(hel.eq.1)) THEN
+         CALL rotor3(b,c,c1,1)
+         CALL rotor3(a,c,c2,2)
+         CALL rotor3(a,b,c3,3)
+      ENDIF
+!
+! Computes the kinetic energy spectrum
+!
+      tmp = 1.0_GP/ &
+            (real(nx,kind=GP)*real(ny,kind=GP)*real(nz,kind=GP))**2
+      IF (kin.eq.1) THEN
+         IF (ista.eq.1) THEN
+!$omp parallel do private (k,kmn,tmq)
+            DO j = 1,ny
+               DO k = 1,nz
+                  kmn = int(abs(kx(1))*Lx+1)
+                  IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                     tmq = (abs(c(k,j,1))**2+abs(b(k,j,1))**2)*tmp
+                     tmr = (abs(a(k,j,1))**2)*tmp
+!$omp critical
+                     Ek (kmn) = Ek (kmn)+tmq+tmr                       
+                     Ekh(kmn) = Ekh(kmn)+tmq
+                     Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                  ENDIF
+               END DO
+            END DO
+!$omp parallel do if (iend-2.ge.nth) private (j,k,kmn,tmq)
+            DO i = 2,iend
+!$omp parallel do if (iend-2.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(abs(c(k,j,i))**2+abs(b(k,j,i))**2)*tmp
+                        tmr = 2*(abs(a(k,j,i))**2)*tmp
+!$omp critical
+                        Ek (kmn) = Ek (kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                  END DO
+               END DO
+            END DO
+         ELSE
+!$omp parallel do if (iend-ista.ge.nth) private (j,k,kmn,tmq)
+            DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(abs(c(k,j,i))**2+abs(b(k,j,i))**2)*tmp
+                        tmr = 2*(abs(a(k,j,i))**2)*tmp
+!$omp critical
+                        Ek (kmn) = Ek (kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                  END DO
+               END DO
+            END DO
+         ENDIF
+!
+! Computes the magnetic energy spectrum
+!
+      ELSE IF (kin.eq.0) THEN
+         IF (ista.eq.1) THEN
+!$omp parallel do private (k,kmn,tmq)
+            DO j = 1,ny
+               DO k = 1,nz
+                  kmn = int(abs(kx(1))*Lx+1)
+                  IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                     tmq = (abs(c3(k,j,1))**2+abs(c2(k,j,1))**2)*tmp
+                     tmr = (abs(c1(k,j,1))**2)*tmp
+!$omp critical
+                     Ek (kmn) = Ek (kmn)+tmq+tmr
+                     Ekh(kmn) = Ekh(kmn)+tmq
+                     Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+
+                  ENDIF
+               END DO
+            END DO
+!$omp parallel do if (iend-2.ge.nth) private (j,k,kmn,tmq)
+            DO i = 2,iend
+!$omp parallel do if (iend-2.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(abs(c3(k,j,i))**2+abs(c2(k,j,i))**2)*tmp
+                        tmr = 2*(abs(c1(k,j,i))**2)*tmp
+!$omp critical
+                        Ek (kmn) = Ek (kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                  END DO
+               END DO
+            END DO
+         ELSE
+!$omp parallel do if (iend-ista.ge.nth) private (j,k,kmn,tmq)
+            DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(abs(c3(k,j,i))**2+abs(c2(k,j,i))**2)*tmp
+                        tmr = 2*(abs(c1(k,j,i))**2)*tmp
+!$omp critical
+                        Ek (kmn) = Ek (kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                  END DO
+               END DO
+            END DO
+         ENDIF
+      ENDIF
+!
+! Computes the reduction between nodes
+! and exports the result to a file
+!
+      IF (kin.le.1) THEN
+         CALL MPI_REDUCE(Ek ,Ektot ,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                         MPI_COMM_WORLD,ierr)
+         CALL MPI_REDUCE(Ekh,Ekhtot,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                         MPI_COMM_WORLD,ierr)
+         CALL MPI_REDUCE(Ekv,Ekvtot,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                         MPI_COMM_WORLD,ierr)
+         IF (myrank.eq.0) THEN
+            IF (kin.eq.1) THEN
+         OPEN(1,file=trim(odir) // '/' // 'kspecparax.' // nmb // '.txt')
+            ELSE
+         OPEN(1,file=trim(odir) // '/' // 'mspecparax.' // nmb // '.txt')
+            ENDIF
+            DO k = 1,nx/2+1
+               WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') &
+                              Dkx*(k-1),.5_GP*Ektot(k)*Lx, &
+                    .5_GP*Ekhtot(k)*Lx,.5_GP*Ekvtot(k)*Lx
+            END DO
+            CLOSE(1)
+         ENDIF
+      END IF
+!
+! Computes the helicity spectrum
+!
+      IF (hel.eq.1) THEN
+         DO k = 1,nx/2+1
+            Ek (k) = 0.0D0
+            Ekh(k) = 0.0D0
+            Ekv(k) = 0.0D0
+         END DO
+         IF (ista.eq.1) THEN
+!$omp parallel do private (k,kmn,tmq)
+            DO j = 1,ny
+               DO k = 1,nz
+                  kmn = int(abs(kx(1))*Lx+1)
+                  IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                     tmq = (real(c(k,j,1)*conjg(c3(k,j,1)))+            &
+                            real(b(k,j,1)*conjg(c2(k,j,1))))*tmp
+                     tmr = (real(a(k,j,1)*conjg(c1(k,j,1))))*tmp
+!$omp critical
+                     Ek (kmn) = Ek (kmn)+tmq+tmr
+                     Ekh(kmn) = Ekh(kmn)+tmq
+                     Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                  ENDIF
+               END DO
+            END DO
+!$omp parallel do if (iend-2.ge.nth) private (j,k,kmn,tmq)
+            DO i = 2,iend
+!$omp parallel do if (iend-2.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(real(c(k,j,i)*conjg(c3(k,j,i)))+       &
+                                 real(b(k,j,i)*conjg(c2(k,j,i))))*tmp
+                        tmr = 2*(real(a(k,j,i)*conjg(c1(k,j,i))))*tmp
+!$omp critical
+                        Ek(kmn) = Ek(kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                 END DO
+               END DO
+            END DO
+         ELSE
+!$omp parallel do if (iend-ista.ge.nth) private (j,k,kmn,tmq)
+            DO i = ista,iend
+!$omp parallel do if (iend-ista.lt.nth) private (k,kmn,tmq)
+               DO j = 1,ny
+                  DO k = 1,nz
+                     kmn = int(abs(kx(i))*Lx+1)
+                     IF ((kmn.gt.0).and.(kmn.le.nx/2+1)) THEN
+                        tmq = 2*(real(c(k,j,i)*conjg(c3(k,j,i)))+       &
+                                 real(b(k,j,i)*conjg(c2(k,j,i))))*tmp
+                        tmr = 2*(real(a(k,j,i)*conjg(c1(k,j,i))))*tmp
+!$omp critical
+                        Ek (kmn) = Ek (kmn)+tmq+tmr
+                        Ekh(kmn) = Ekh(kmn)+tmq
+                        Ekv(kmn) = Ekv(kmn)+tmr
+!$omp end critical
+                     ENDIF
+                  END DO
+               END DO
+            END DO
+         ENDIF
+!
+! Computes the reduction between nodes
+! and exports the result to a file
+!
+         CALL MPI_REDUCE(Ek ,Ektot ,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM, &
+                         0,MPI_COMM_WORLD,ierr)
+         CALL MPI_REDUCE(Ekh,Ekhtot,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM, &
+                         0,MPI_COMM_WORLD,ierr)
+         CALL MPI_REDUCE(Ekv,Ekvtot,nx/2+1,MPI_DOUBLE_PRECISION,MPI_SUM, &
+                         0,MPI_COMM_WORLD,ierr)
+         IF (myrank.eq.0) THEN
+            IF (kin.eq.1) THEN
+        OPEN(1,file=trim(odir) // '/' // 'kheliparax.' // nmb // '.txt')
+            ELSE IF (kin.eq.0) THEN
+        OPEN(1,file=trim(odir) // '/' // 'mheliparax.' // nmb // '.txt')
+            ELSE
+        OPEN(1,file=trim(odir) // '/' // 'gheliparax.' // nmb // '.txt')
+            ENDIF
+            DO k = 1,nx/2+1
+               WRITE(1,FMT='(E13.6,E23.15,E23.15,E23.15)') &
+                     Dkx*(k-1),Ektot(k)*Lx,Ekhtot(k)*Lx,Ekvtot(k)*Lx
+            ENDDO
+            CLOSE(1)
+         ENDIF
+      ENDIF
+
+      RETURN
+      END SUBROUTINE specpara_x
+
+!*****************************************************************
       SUBROUTINE specperp(a,b,c,nmb,kin,hel,odir)
 !-----------------------------------------------------------------
 !
