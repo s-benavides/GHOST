@@ -1,6 +1,7 @@
 ! Spectra computed in HD runs in the rotating frame
 
-            CALL spectrum(vx,vy,vz,ext,1,1,odir)
+            CALL spectrum(vx,vy,vz,ext,1,0,odir)
+            CALL specpara_x(vx,vy,vz,ext,1,0,odir)
 !            CALL specpara(vx,vy,vz,ext,1,1,odir)
 !            CALL specperp(vx,vy,vz,ext,1,1,odir)
 
