@@ -16,6 +16,7 @@
 ! Notes:
 ! - curl(C1,C2,C3) = (fx,fy,fz)
 ! - Have: |C| = 1/kf so that |F| = f0 in the end.
+! - Forces only kx = 0 mode (2D modes aligned with x)
 ! - If I use this with f0 = f0/sqrt(dt), will this give me an energy injection of 
 !   f0^2 as I would guess?
 
@@ -106,11 +107,11 @@
                IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C1(k,j,i) = 0.0
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C2(k,j,i) = 0.0
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C3(k,j,i) = 0.0
                ELSE
                   C1(k,j,i) = 0.
                   C2(k,j,i) = 0.
@@ -128,11 +129,11 @@
                IF ((kk2(k,j,i).le.kup**2).and.(kk2(k,j,i).ge.kdn**2)) THEN
                   dump = 1./sqrt(kk2(k,j,i))
                   phase = 2*pi*randu(seed)
-                  C1(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C1(k,j,i) = 0.
                   phase = 2*pi*randu(seed)
-                  C2(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C2(k,j,i) = 0.
                   phase = 2*pi*randu(seed)
-                  C3(k,j,i) = (COS(phase)+im*SIN(phase))*dump
+                  C3(k,j,i) = 0.
                ELSE
                   C1(k,j,i) = 0.
                   C2(k,j,i) = 0.
