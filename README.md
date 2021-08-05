@@ -11,15 +11,19 @@ All changes _only_ apply to the following 3D solvers (other 3D solvers may not w
 * RMHDB
 * QMHD (new solver added)
 
+All changes work for anistropic box sizes and resolutions.
+
 Changes:
 * Added CFL condition.
 * Added hyper- and hypo-dissipation.
-* Modified 'initialfv.f90_random' to include the possibility of constant injection of energy (of amplitude f0) if 'rand' equals 1. Added 'initialfv.f90_random_2', which is a different forcing function meant to be used for random forcing, but which forces the k_z = 0 modes.
+* Added a new solver called QMHD, representing quasistatic MHD, valid in the limit of strong background magnetic field and low magnetic Reynolds numer (see Knaepen and Moreau, Annu. Rev. Fluid Mech. 2008. 40:25–45). Includes the possibility of rotation (in the z direction). The background magnetic field is in the z-x plane.
+* Modified 'initialfv.f90_random' to include the possibility of constant injection of energy (of amplitude f0) if 'rand' equals 1. Added 'initialfv.f90_random_2', which is a different forcing function meant to be used for random forcing, but which forces the k_z = 0 modes. Similarly, 'initialfv.f90_random_x' forces randomly in k_x=0 modes.
+* Added a new random initial condition, 'initialv.f90_random', which gives constant energy to modes k < kup and zero energy for k > kup. Random phases.
 * Modified some of the global outputs. Including |u(k_f)|^2 for all of the modified solvers, |J x B|^2 and hybrid helicity for RMHDB when the magnetic field and rotation are aligned, as well as energy parallel/perpendicular to rotation/magnetic field for those solvers with rotation and a background field (also QMHD).
+* Added specpara_x, which measures the spectrum in the x-direction (because in misaligned runs using RMHDB and QMHD, the magnetic field is in the x-direction, whereas rotation in the z).
 * For solvers with rotation, added two new functions (with respective outputs): 
 	1. 'spec2D_yavg', which takes the 2D spectrum, but instead of integrating azimuthally, it integrates in the y-direction. Meant to be used with misaligned Omega and B_0 (with B_0 only x and z, not y component).
 	2. 'energy_arbdir', measures the total kinetic energy, split up into a parallel and perpendicular component, with respect to an arbitrary vector that is an input, e.g. B_0 or \Omega".
-* Added a new solver called QMHD, representing quasistatic MHD, valid in the limit of strong background magnetic field and low magnetic Reynolds numer (see Knaepen and Moreau, Annu. Rev. Fluid Mech. 2008. 40:25–45). Includes the possibility of rotation (in the z direction). The background magnetic field is in the z-x plane.
 
 
 %%%%%
