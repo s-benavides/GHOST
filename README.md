@@ -16,7 +16,7 @@ All changes work for anistropic box sizes and resolutions.
 Changes:
 * Added CFL condition.
 * Added hyper- and hypo-dissipation.
-* Added a new solver called QMHD, representing quasistatic MHD, valid in the limit of strong background magnetic field and low magnetic Reynolds numer (see Knaepen and Moreau, Annu. Rev. Fluid Mech. 2008. 40:25–45). Includes the possibility of rotation (in the z direction). The background magnetic field is in the z-x plane.
+* Added a new solver called QMHD, representing quasistatic MHD, valid in the limit of strong background magnetic field and low magnetic Reynolds numer (see Knaepen and Moreau, Annu. Rev. Fluid Mech. 2008. 40:25–45). Includes the possibility of rotation (in an arbitrary direction). The background magnetic field is in the z-x plane.
 * Modified 'initialfv.f90_random' to include the possibility of constant injection of energy (of amplitude f0) if 'rand' equals 1. Added 'initialfv.f90_random_2', which is a different forcing function meant to be used for random forcing, but which forces the k_z = 0 modes. Similarly, 'initialfv.f90_random_x' forces randomly in k_x=0 modes.
 * Added a new random initial condition, 'initialv.f90_random', which gives constant energy to modes k < kup and zero energy for k > kup. Random phases.
 * Modified some of the global outputs. Including |u(k_f)|^2 for all of the modified solvers, |J x B|^2 and hybrid helicity for RMHDB when the magnetic field and rotation are aligned, as well as energy parallel/perpendicular to rotation/magnetic field for those solvers with rotation and a background field (also QMHD).
