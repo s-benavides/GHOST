@@ -767,12 +767,16 @@
       CALL MPI_BCAST(Lx,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(Ly,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(Lz,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(Dkk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+!!      CALL MPI_BCAST(Dkk,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       Dkx = 1.0_GP/Lx
       Dky = 1.0_GP/Ly
       Dkz = 1.0_GP/Lz
 #endif
+#ifdef QMHD_
+      IF (Dkk.lt.1e-5) Dkk = min(Dky,Dkz)
+#else
       IF (Dkk.lt.1e-5) Dkk = min(Dkx,Dky,Dkz)
+#endif
 
 #if defined(VELOC_) || defined(ADVECT_)
 ! Reads parameters for the velocity field from the 
