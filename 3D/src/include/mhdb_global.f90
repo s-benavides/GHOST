@@ -15,8 +15,7 @@
          IF (ista.eq.1) THEN
             DO j = 1,ny
                DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,1))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,1).gt.(kdn**2/2.0)).and.(kk2(k,j,1).le.(kup**2*2.0))) THEN
                   tmp = tmp+(abs(vx(k,j,1))**2+abs(vy(k,j,1))**2+ &
                          abs(vz(k,j,1))**2)*tmq
                   ENDIF
@@ -25,8 +24,7 @@
             DO i = 2,iend
                DO j = 1,ny
                   DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,i).gt.(kdn**2/2.0)).and.(kk2(k,j,i).le.(kup**2*2.0))) THEN
                      tmp = tmp+2*(abs(vx(k,j,i))**2+abs(vy(k,j,i))**2+ &
                             abs(vz(k,j,i))**2)*tmq
                   ENDIF
@@ -37,8 +35,7 @@
             DO i = ista,iend
                DO j = 1,ny
                   DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,i).gt.(kdn**2/2.0)).and.(kk2(k,j,i).le.(kup**2*2.0))) THEN
                      tmp = tmp + 2*(abs(vx(k,j,i))**2+abs(vy(k,j,i))**2+ &
                             abs(vz(k,j,i))**2)*tmq
                    ENDIF
@@ -63,8 +60,7 @@
          IF (ista.eq.1) THEN
             DO j = 1,ny
                DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,1))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,1).gt.(kdn**2/2.0)).and.(kk2(k,j,1).le.(kup**2*2.0))) THEN
                   tmp = tmp+(abs(c1(k,j,1))**2+abs(c2(k,j,1))**2+ &
                          abs(c3(k,j,1))**2)*tmq
                   ENDIF
@@ -73,8 +69,7 @@
             DO i = 2,iend
                DO j = 1,ny
                   DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,i).gt.(kdn**2/2.0)).and.(kk2(k,j,i).le.(kup**2*2.0))) THEN
                      tmp = tmp+2*(abs(c1(k,j,i))**2+abs(c2(k,j,i))**2+ &
                             abs(c3(k,j,i))**2)*tmq
                   ENDIF
@@ -85,8 +80,7 @@
             DO i = ista,iend
                DO j = 1,ny
                   DO k = 1,nz
-                  ki = int(sqrt(kk2(k,j,i))/Dkk+.501)
-                  IF ((ki.gt.(kdn/sqrt(2.0))).and.(ki.le.(kup*sqrt(2.0)))) THEN
+                  IF ((kk2(k,j,i).gt.(kdn**2/2.0)).and.(kk2(k,j,i).le.(kup**2*2.0))) THEN
                      tmp = tmp + 2*(abs(c1(k,j,i))**2+abs(c2(k,j,i))**2+ &
                             abs(c3(k,j,i))**2)*tmq
                    ENDIF
