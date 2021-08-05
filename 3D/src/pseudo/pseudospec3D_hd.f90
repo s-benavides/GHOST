@@ -137,6 +137,7 @@
       USE kes
       USE grid
       USE mpivars
+      USE ali
 !$    USE threads
       IMPLICIT NONE
 
@@ -151,7 +152,11 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k)
          DO j = 1,ny
             DO k = 1,nz
-               b(k,j,i) = -(nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo))*a(k,j,i)
+                  IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN 
+                    b(k,j,i) = -(nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo))*a(k,j,i)
+                  ELSE
+                  b(k,j,i) = 0.0_GP
+                  ENDIF
             END DO
          END DO
       END DO
@@ -199,8 +204,8 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k)
          DO j = 1,ny
             DO k = 1,nz
-              IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN
-               b(k,j,i) = -( & 
+                IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN
+                 b(k,j,i) = -( & 
                         nu*kk2(k,j,i)**(hyper)+hnu*kk2(k,j,i)**(-hypo) &
                         + kk2(k,j,i)**(-1)*( &
                             NNx**2*kx(i)**2 &
@@ -208,9 +213,9 @@
                             +NNz**2*kz(k)**2 &
                                            ) &    
                            )*a(k,j,i)
-              ELSE
-               b(k,j,i) = 0.0_GP
-              ENDIF
+                  ELSE
+                  b(k,j,i) = 0.0_GP
+                  ENDIF
             END DO
          END DO
       END DO
@@ -800,10 +805,10 @@
 !$omp parallel do private (k) reduction(+:dloc)
             DO j = 1,ny
                DO k = 1,nz
-                   IF ((kn2(k,j,1).ge.tiny).and.(kn2(k,j,1).le.kmax)) THEN
-                      dloc = dloc+(kn2(k,j,1))**kin*(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
+                 IF ((kn2(k,j,1).le.kmax).and.(kn2(k,j,1).ge.tiny)) THEN
+                   dloc = dloc+(kk2(k,j,1))**kin*(abs(a(k,j,1))**2+abs(b(k,j,1))**2+ &
                          abs(c(k,j,1))**2)*tmp
-                   ENDIF
+                  ENDIF
                END DO
             END DO
 !$omp parallel do if (iend-2.ge.nth) private (j,k) reduction(+:dloc)
@@ -811,10 +816,10 @@
 !$omp parallel do if (iend-2.lt.nth) private (k) reduction(+:dloc)
                DO j = 1,ny
                   DO k = 1,nz
-                   IF ((kn2(k,j,i).ge.tiny).and.(kn2(k,j,i).le.kmax)) THEN
-                     dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                  IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN 
+                     dloc = dloc+2*(kk2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                             abs(c(k,j,i))**2)*tmp
-                   ENDIF
+                    ENDIF
                   END DO
                END DO
             END DO
@@ -824,10 +829,10 @@
 !$omp parallel do if (iend-ista.lt.nth) private (k) reduction(+:dloc)
                DO j = 1,ny
                   DO k = 1,nz
-                   IF ((kn2(k,j,i).ge.tiny).and.(kn2(k,j,i).le.kmax)) THEN
-                     dloc = dloc+2*(kn2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
+                  IF ((kn2(k,j,i).le.kmax).and.(kn2(k,j,i).ge.tiny)) THEN 
+                     dloc = dloc+2*(kk2(k,j,i))**kin*(abs(a(k,j,i))**2+abs(b(k,j,i))**2+ &
                             abs(c(k,j,i))**2)*tmp
-                   ENDIF
+                    ENDIF
                   END DO
                END DO
             END DO
