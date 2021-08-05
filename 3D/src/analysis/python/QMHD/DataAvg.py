@@ -12,7 +12,7 @@ import field_calc
 rule = string.maketrans('d', '0')
 
 # Get all the AvgTimeO*B*.txt files
-avglist = sorted(glob.glob('rundat/AvgTimeO*.txt'))
+avglist = sorted(glob.glob('rundat/AvgTimeO2*.txt'))
 
 runnames = []
 for file in avglist:
@@ -40,7 +40,10 @@ for i,run in enumerate(runnames):
 
     Nx, Nz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=56,skip_header=130,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
 
+    Lx, Ly, Lz = np.genfromtxt(path+'parameter.inp',comments='!',skip_footer=130,skip_header=34,converters={2:  lambda val: float(val.translate(rule))},usecols=2)
+
     print("omegax = %s, omegaz = %s, Nx = %s, Nz = %s" % (omegax,omegaz,Nx,Nz))
+    print("Lx = %s, Ly = %s, Lz  = %s" % (Lx,Ly,Lz))
 
     # Average start indices
     [start,start_fl,err_ind] = np.loadtxt('rundat/AvgTime'+run+'.txt')
@@ -113,6 +116,9 @@ for i,run in enumerate(runnames):
     Data_E['kf'] = kf
     Data_E['Nx'] = Nx
     Data_E['Nz'] = Nz
+    Data_E['Lx'] = Lx
+    Data_E['Ly'] = Ly
+    Data_E['Lz'] = Lz
     Data_E['omegax'] = omegax
     Data_E['omegaz'] = omegaz
     Data_E['rand'] = rand
