@@ -10,7 +10,7 @@ from datetime import date
 rule = string.maketrans('d', '0')
 
 # Get all the AvgTimeO*B*.txt files
-avglist = sorted(glob.glob('rundat/AvgTimeO*.txt'))
+avglist = sorted(glob.glob('rundat/AvgTimeO2*.txt'))
 
 runnames = []
 for file in avglist:
@@ -37,7 +37,6 @@ for i,run in enumerate(runnames):
 
     # Averaging
     for field in fields:
-        
         inds = []
         files = sorted(glob.glob(path+field+'.*.txt'))
         for file in files:
@@ -48,6 +47,10 @@ for i,run in enumerate(runnames):
         
         numfiles = int(len(inds))
         print('%s files to average' % numfiles)
+        
+        flux = sorted(glob.glob(path+field+'.'+str(inds[0])+'.txt'))[0]
+        flux_avg = np.loadtxt(flux)[:,1]/float(numfiles)
+        flux_avg = np.zeros(np.shape(flux_avg))
 
         for ii,ind in enumerate(inds):
             # Load file names
