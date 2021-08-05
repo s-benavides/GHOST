@@ -1,6 +1,6 @@
         CALL maxabs(vx,vy,vz,rmp,0)  ! max vort = k U
         CALL maxabs(ax,ay,az,rmq,1)  ! max j = k B
-        kcut = real(nx,kind=GP)/3.0_GP    !1/dx        
+        kcut = max(real(nx,kind=GP)/Lx,real(ny,kind=GP)/Ly,real(nz,kind=GP)/Lz)/3.0_GP !1/dx
 
         dt = cfl/max(rmp,rmq,nu*kcut**(2*hek),&
                    mu*kcut**(2*hem),hnu,hmu)
