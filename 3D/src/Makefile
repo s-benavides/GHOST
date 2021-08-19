@@ -245,7 +245,7 @@ wv:     edit $(GTIMER) $(FFTPDIR)/fftp3D.o $(GUTILS)  $(IOLIB)/binary_io.o \
 	$(MAKE) undo
 
 clean:  undo
-	rm -f *.o *.d *.s *.int *.inf *.mod work.pc* ifc*
+	rm -f *.o *.d *.s *.int *.inf *.mod work.pc* ifc* slurm*.out
 	rm -f $(OBJSDIR)/pseudospec3D_mod.f90
 	for dir in $(SUBDIRS); do \
             cd $$dir && $(MAKE) clean && cd .. ; \
