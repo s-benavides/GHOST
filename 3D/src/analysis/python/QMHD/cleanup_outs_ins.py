@@ -15,6 +15,7 @@ for path in tf_paths:
         print("Skipping")
         pass
     else:
+        run = os.path.split(path)[0][:-4]
         print("Working on %s" % os.path.split(path)[0][:-4])
         # Find last output
         if np.size(np.loadtxt(str(path))[-1])==1:
@@ -42,7 +43,8 @@ for path in tf_paths:
             # Check if any of the last files are not the right size
             for ffile in lastfiles:
                 osize = pathlib.Path(ffile).stat().st_size
-                if osize!=134217728:
+                #print(run,osize)
+                if ((osize!=134217728)&(osize!=268435456)&(osize!=1073741824)&(osize!=536870912)):
                     print(" ~%~%~%~%~%~ Not complete file! Not deleting and stopping.  ~%~%~%~%~%~ ")
                     cont = False
             # If it's all good, then deletes.
