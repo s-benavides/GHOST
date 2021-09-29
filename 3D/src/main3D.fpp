@@ -2367,6 +2367,18 @@
                CALL io_write(1,odir,'wx',ext,planio,R1)
                CALL io_write(1,odir,'wy',ext,planio,R2)
                CALL io_write(1,odir,'wz',ext,planio,R3)
+#ifdef QMHD_
+           ! Lorentz operator L(.) for QMHD
+               CALL bdiss(C1,C4,0,0,0.0_GP,0.0_GP,NNx,NNz) ! L(vx)
+               CALL bdiss(C2,C5,0,0,0.0_GP,0.0_GP,NNx,NNz) ! L(vy)
+               CALL bdiss(C3,C6,0,0,0.0_GP,0.0_GP,NNx,NNz) ! L(vz)
+               CALL fftp3d_complex_to_real(plancr,C4,R1,MPI_COMM_WORLD)
+               CALL fftp3d_complex_to_real(plancr,C5,R2,MPI_COMM_WORLD)
+               CALL fftp3d_complex_to_real(plancr,C6,R3,MPI_COMM_WORLD)
+               CALL io_write(1,odir,'Lvx',ext,planio,R1)
+               CALL io_write(1,odir,'Lvy',ext,planio,R2)
+               CALL io_write(1,odir,'Lvz',ext,planio,R3)
+#endif
             ENDIF
             CALL fftp3d_complex_to_real(plancr,C1,R1,MPI_COMM_WORLD)
             CALL fftp3d_complex_to_real(plancr,C2,R2,MPI_COMM_WORLD)
