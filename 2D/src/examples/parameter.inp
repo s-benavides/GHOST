@@ -1,7 +1,7 @@
 ! General configuration flags
 &status
-idir = "/ptmp/run"
-odir = "/ptmp/run"
+idir = "../ins"
+odir = "../outs"
 stat = 0         ! last binary file if restarting an old run
 mult = 1         ! decreases the time step
 bench = 0        ! benchmark mode if 1
@@ -12,22 +12,32 @@ trans = 1        ! computes energy transfer if 1
 ! Parameters for time integration
 &parameter
 dt = 7.5e-4      ! time step
-step = 12001     ! total number of steps
-tstep = 500      ! number of steps between binary output
-sstep = 250      ! number of steps between spectrum output
-cstep = 10       ! number of steps between writing global quantities
+step = 3600001     ! total number of steps
+tstep = 2300      ! number of steps between binary output
+sstep = 230      ! number of steps between spectrum output
+cstep = 23       ! number of steps between writing global quantities
 rand = 1         ! random phases if 1
-cort = 7.5e-4    ! correlation time of the external forcing
+cort = 1.0e-10    ! correlation time of the external forcing. if cort=dt, then updates every step (white noise)
 seed = 1000      ! seed for the random number generator
+/
+
+! cfl 
+&cflcond
+cfl = 0.5        ! cfl condition
+time = 0.0       ! if stat.neq.0, then this is start time
+timef_in = 0.0   ! if stat.neq.0, then keeps track of forcing correlation
 /
 
 ! Parameters for the velocity field
 &velocity
-f0 = 0.37714265  ! amplitude of the mechanical forcing
-u0 = 1.00        ! amplitude of the initial velocity field
-kdn = 2.00       ! minimum wavenumber
-kup = 2.00       ! maximum wavenumber
+f0 = 1.0         ! amplitude of the mechanical forcing
+u0 = 0.10        ! amplitude of the initial velocity field
+kdn = 8.00       ! minimum wavenumber
+kup = 10.00      ! maximum wavenumber
 nu = 3.e-4       ! kinematic viscosity
+hnu = 2.e-1       ! kinematic (hypo)viscosity
+hek = 2          ! hyperviscosity power (nabla^(2*hek))
+hok = 1          ! hypoviscosity power (nabla^(-2*hok))
 fparam0 = 0.90   ! fparam0-9 can be used to control the forcing
 vparam0 = 0.10   ! idem for the initial velocity field
 /
@@ -36,9 +46,12 @@ vparam0 = 0.10   ! idem for the initial velocity field
 &magfield
 m0 = 0.00        ! amplitude of the electromotive forcing
 a0 = 1.00        ! amplitude of the magnetic field
-mkdn = 10.00     ! minimum wavenumber
-mkup = 20.00     ! maximum wavenumber
-mu = 2.e-3       ! magnetic diffusivity
+mkdn = 8.00      ! minimum wavenumber
+mkup = 10.00     ! maximum wavenumber
+mu = 3.e-4       ! magnetic diffusivity
+hmu = 2.e-1      ! magnetic (hypo)viscosity
+hem = 2          ! hyperviscosity power (nabla^(2*hek))
+hom = 1          ! hypoviscosity power (nabla^(-2*hok))
 corr = 0         ! correlation between the fields/forcings
 mparam0 = 0.90   ! mparam0-9 can be used to control the forcing
 aparam0 = 0.10   ! idem for the initial magnetic field

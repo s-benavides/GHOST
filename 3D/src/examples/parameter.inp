@@ -17,13 +17,13 @@ dt = 7.5e-4      ! time step (if RMHDB, just sets initial dt)
 step = 3600001   ! total number of steps
 tstep = 2300     ! number of steps between binary output
 sstep = 230      ! number of steps between spectrum output
-cstep = 1 ! 23   ! number of steps between writing global quantities
+cstep = 23       ! number of steps between writing global quantities
 rand = 1         ! random phases if 1
-cort = 1.0e-2   ! correlation time of the external forcing. if cort=dt, then updates every step (white noise)
+cort = 1.0e-10   ! correlation time of the external forcing. if cort=dt, then updates every step (white noise)
 seed = 1000      ! seed for the random number generator
 /
 
-! cfl  (NOTE: only available for RMHDB solver)
+! cfl 
 &cflcond
 cfl = 0.5        ! cfl condition
 time = 0.0       ! if stat.neq.0, then this is start time
@@ -46,7 +46,7 @@ kup = 10.00      ! maximum wavenumber
 nu = 3.e-3       ! kinematic (hyper)viscosity
 hnu = 3.e-3      ! kinematic (hypo)viscosity
 hek = 1		 ! hyperviscosity power (nabla^(2*hek))
-hok = 1		 ! hypoviscosity power (nabla^(-2*hek))
+hok = 1		 ! hypoviscosity power (nabla^(-2*hok))
 fparam0 = 0.90   ! fparam0-9 can be used to control the forcing
 fparam1 = 0.90   ! fparam0-9 can be used to control the forcing
 fparam2 = 0.90   ! fparam0-9 can be used to control the forcing

@@ -344,11 +344,11 @@
          END DO
       END DO
 
-! The following lines read the file 'parameter.txt'
+! The following lines read the file 'parameter.inp'
 
 !
 ! Reads general configuration flags from the namelist 
-! 'status' on the external file 'parameter.txt'
+! 'status' on the external file 'parameter.inp'
 !     idir : directory for unformatted input
 !     odir : directory for unformatted output
 !     stat : = 0 starts a new run
@@ -362,7 +362,7 @@
 !            = 1 performs energy transfer computation
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=status)
          CLOSE(1)
       ENDIF
@@ -377,7 +377,7 @@
 !
 ! Reads parameters that will be used to control the 
 ! time integration from the namelist 'parameter' on 
-! the external file 'parameter.txt'
+! the external file 'parameter.inp'
 !     dt   : time step size
 !     step : total number of time steps to compute
 !     tstep: number of steps between binary output
@@ -389,7 +389,7 @@
 !     seed : seed for the random number generator
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=parameter)
          CLOSE(1)
          dt = dt/real(mult,kind=GP)
@@ -410,7 +410,7 @@
 
 !
 ! Reads parameters for the velocity field from the 
-! namelist 'velocity' on the external file 'parameter.txt' 
+! namelist 'velocity' on the external file 'parameter.inp' 
 !     f0   : amplitude of the mechanical forcing
 !     u0   : amplitude of the initial velocity field
 !     kdn  : minimum wave number in v/mechanical forcing
@@ -422,7 +422,7 @@
 !            the initial conditions for the velocity field
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=velocity)
          CLOSE(1)
       ENDIF
@@ -455,7 +455,7 @@
 #ifdef VECPOT_
 !
 ! Reads parameters for the magnetic field from the 
-! namelist 'magfield' on the external file 'parameter.txt' 
+! namelist 'magfield' on the external file 'parameter.inp' 
 !     m0   : amplitude of the electromotive forcing
 !     a0   : amplitude of the initial vector potential
 !     mkdn : minimum wave number in B/electromotive forcing
@@ -468,7 +468,7 @@
 !            the initial conditions for the magnetic field
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=magfield)
          CLOSE(1)
       ENDIF
@@ -504,12 +504,12 @@
 !
 ! Reads general configuration flags for runs with 
 ! a passive/active scalar from the namelist 'inject' 
-! on the external file 'parameter.txt'
+! on the external file 'parameter.inp'
 !     injt : = 0 when stat=0 generates initial v and th (SCALAR_)
 !            = 1 when stat.ne.0 imports v and generates th (SCALAR_)
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=inject)
          CLOSE(1)
       ENDIF
@@ -517,7 +517,7 @@
 
 !
 ! Reads parameters for the passive/active scalar from the 
-! namelist 'scalar' on the external file 'parameter.txt'
+! namelist 'scalar' on the external file 'parameter.inp'
 !     s0   : amplitude of the scalar forcing (or topography)
 !     c0   : initial amplitude of the scalar
 !     skdn : minimum wave number in scalar/forcing
@@ -529,7 +529,7 @@
 !            the initial scalar distribution
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=scalar)
          CLOSE(1)
       ENDIF
@@ -564,11 +564,11 @@
 !
 ! Reads parameters for runs with a uniform magnetic 
 ! field from the namelist 'uniformb' on the external 
-! file 'parameter.txt' 
+! file 'parameter.inp' 
 !     by0: uniform magnetic field in y
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=uniformb)
          CLOSE(1)
       ENDIF
@@ -579,13 +579,13 @@
 !
 ! Reads parameters for runs with the Hall effect 
 ! from the namelist 'hallparam' on the external 
-! file 'parameter.txt' 
+! file 'parameter.inp' 
 !     ep  : amplitude of the Hall effect
 !     gspe: = 0 skips generalized helicity spectrum computation
 !           = 1 computes the spectrum of generalized helicity
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=hallparam)
          CLOSE(1)
       ENDIF
@@ -596,13 +596,13 @@
 !
 ! Reads parameters for runs solving shallow-water 
 ! equations from the namelist 'gravity' on the 
-! external file 'parameter.txt' 
+! external file 'parameter.inp' 
 !     g      : amplitude of the effective gravity
 !     switch : = 0 for non-dispersive SW equations
 !              = 1 for dispersive (Boussinessq) SW equations
 
       IF (myrank.eq.0) THEN
-         OPEN(1,file='parameter.txt',status='unknown',form="formatted")
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
          READ(1,NML=gravity)
          CLOSE(1)
       ENDIF

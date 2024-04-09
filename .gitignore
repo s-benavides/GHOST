@@ -30,4 +30,6 @@ core
 3D/src/test/
 3D/src/test2/
 3D/src/test3/
+2D/src/test/
+.ipynb_checkpoints
 # CVS default ignores end
