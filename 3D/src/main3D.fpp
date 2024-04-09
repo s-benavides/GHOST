@@ -786,6 +786,9 @@
 !     kdn  : minimum wave number in v/mechanical forcing
 !     kup  : maximum wave number in v/mechanical forcing
 !     nu   : kinematic viscosity
+!     hnu  : hypoviscosity
+!     hek  : hyperviscosity power (nabla^(2*hek))
+!     hok  : hypoviscosity power (nabla^(-2*hok))
 !     fparam0-9 : ten real numbers to control properties of 
 !            the mechanical forcing
 !     vparam0-9 : ten real numbers to control properties of
@@ -1075,6 +1078,10 @@
 !     mkdn : minimum wave number in B/electromotive forcing
 !     mkup : maximum wave number in B/electromotive forcing
 !     mu   : magnetic diffusivity
+!     hmu  : hypoviscosity
+!     hmu  : hypodiffusivity
+!     hem  : hyperdiffusivity power (nabla^(2*hem))
+!     hom  : hypodiffusivity power (nabla^(-2*hom))
 !     corr : = 0 no correlation between the random phases
 !            = 1 correlation in the random phases generator
 !     mparam0-9 : ten real numbers to control properties of 
