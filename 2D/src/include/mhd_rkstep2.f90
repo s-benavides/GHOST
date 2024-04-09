@@ -13,9 +13,9 @@
             DO j = 1,n
             
             IF ((ka2(j,i).le.kmax).and.(ka2(j,i).ge.tiny)) THEN
-               ps(j,i) = C1(j,i)+dt*(nu*C3(j,i)+(az(j,i)-ps(j,i))    &
+               ps(j,i) = C1(j,i)+dt*((nu*ka2(j,i)**(hek-1) + hnu*ka2(j,i)**(-hok-1))*C3(j,i)+(az(j,i)-ps(j,i))    &
               /ka2(j,i)+fk(j,i))*rmp
-               az(j,i) = C2(j,i)+dt*(mu*C4(j,i)+C5(j,i)+mk(j,i))*rmp
+               az(j,i) = C2(j,i)+dt*((mu*ka2(j,i)**(hem-1) + hmu*ka2(j,i)**(-hom-1))*C4(j,i)+C5(j,i)+mk(j,i))*rmp
             ELSE
                ps(j,i) = 0.0_GP
                az(j,i) = 0.0_GP
