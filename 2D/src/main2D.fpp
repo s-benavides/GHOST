@@ -33,6 +33,8 @@
 ! 1 Oct 2010: Main program for all solvers (HD/MHD/HMHD)
 ! 13 May 2011: SQG solver (Tomas Teitelbaum, teitelbaum@df.uba.ar)
 ! 1 Feb 2012: SWHD solver (Patricio Clark, patoclark@gmail.com)
+! 2024: CFL condition, hyper/hypo dissipation, synchronization
+! solver. (S. J. Benavides, santilovespi@gmail.com)
 !=================================================================
 
 !
@@ -128,9 +130,10 @@
       DOUBLE PRECISION :: cputime1,cputime2
       DOUBLE PRECISION :: cputime3,cputime4
 
-      REAL(KIND=GP) :: dt,nu,mu
+      REAL(KIND=GP) :: dt,nu,hnu
       REAL(KIND=GP) :: kup,kdn
       REAL(KIND=GP) :: rmp,rmq
+      REAL(KIND=GP) :: kcut
       REAL(KIND=GP) :: dump
       REAL(KIND=GP) :: stat
       REAL(KIND=GP) :: f0,u0
@@ -140,13 +143,14 @@
       REAL(KIND=GP) :: vparam0,vparam1,vparam2,vparam3,vparam4
       REAL(KIND=GP) :: vparam5,vparam6,vparam7,vparam8,vparam9
 #ifdef VECPOT_
-      REAL(KIND=GP) :: mkup,mkdn
+      REAL(KIND=GP) :: mu,hmu,mkup,mkdn
       REAL(KIND=GP) :: m0,a0
       REAL(KIND=GP) :: corr
       REAL(KIND=GP) :: mparam0,mparam1,mparam2,mparam3,mparam4
       REAL(KIND=GP) :: mparam5,mparam6,mparam7,mparam8,mparam9
       REAL(KIND=GP) :: aparam0,aparam1,aparam2,aparam3,aparam4
       REAL(KIND=GP) :: aparam5,aparam6,aparam7,aparam8,aparam9
+      INTEGER :: hem,hom ! Hyperviscosity powers
 #endif
 #ifdef SCALAR_
       REAL(KIND=GP) :: skup,skdn,kappa
@@ -176,13 +180,24 @@
       INTEGER :: ki,kj
       INTEGER :: tind,sind
       INTEGER :: timet,timec
-      INTEGER :: times,timef
+      INTEGER :: times
+      INTEGER :: hek,hok ! Hyperviscosity powers
+      INTEGER :: tmp_int,tmp_int1,tmp_int2
 #ifdef SCALAR_
       INTEGER :: injt
 #endif
 
 #if defined(DEF_GHOST_CUDA_)
        TYPE(cudaDeviceProp) :: devprop
+#endif
+
+#ifdef CFL_
+      REAL(KIND=GP)    :: cfl
+      REAL(KIND=GP)    :: time
+      REAL(KIND=GP)    :: timef_in  !for forcing correlation
+      REAL(KIND=GP)    :: timef
+#else
+      INTEGER :: timef
 #endif
 
       TYPE(IOPLAN) :: planio
@@ -193,17 +208,13 @@
 
       NAMELIST / status / idir,odir,stat,mult,bench,outs,trans
       NAMELIST / parameter / dt,step,tstep,sstep,cstep,rand,cort,seed
-      NAMELIST / velocity / f0,u0,kdn,kup,nu,fparam0,fparam1,fparam2
-      NAMELIST / velocity / fparam3,fparam4,fparam5,fparam6,fparam7
-      NAMELIST / velocity / fparam8,fparam9,vparam0,vparam1,vparam2
-      NAMELIST / velocity / vparam3,vparam4,vparam5,vparam6,vparam7
-      NAMELIST / velocity / vparam8,vparam9
+      NAMELIST / velocity / f0,u0,kdn,kup,nu,hnu,hek,hok,fparam0,vparam0
+      NAMELIST / velocity / fparam1,fparam2,fparam3,fparam4,fparam5,fparam6,fparam7,fparam8,fparam9
+      NAMELIST / velocity / vparam1,vparam2,vparam3,vparam4,vparam5,vparam6,vparam7,vparam8,vparam9
 #ifdef VECPOT_
-      NAMELIST / magfield / m0,a0,mkdn,mkup,mu,corr,mparam0,mparam1
-      NAMELIST / magfield / mparam2,mparam3,mparam4,mparam5,mparam6
-      NAMELIST / magfield / mparam7,mparam8,mparam9,aparam0,aparam1
-      NAMELIST / magfield / aparam2,aparam3,aparam4,aparam5,aparam6
-      NAMELIST / magfield / aparam7,aparam8,aparam9
+      NAMELIST / magfield / m0,a0,mkdn,mkup,mu,hmu,hem,hom,corr,mparam0,aparam0
+      NAMELIST / magfield / mparam1,mparam2,mparam3,mparam4,mparam5,mparam6,mparam7,mparam8,mparam9
+      NAMELIST / magfield / aparam1,aparam2,aparam3,aparam4,aparam5,aparam6,aparam7,aparam8,aparam9
 #endif
 #ifdef SCALAR_
       NAMELIST / scalar / c0,s0,skdn,skup,kappa,cparam0,cparam1
@@ -222,6 +233,11 @@
 #ifdef SW_
       NAMELIST / gravity / g
       NAMELIST / gravity / switch
+#endif
+#ifdef CFL_
+      NAMELIST / cflcond / cfl
+      NAMELIST / cflcond / time
+      NAMELIST / cflcond / timef_in
 #endif
 
 !
@@ -416,6 +432,9 @@
 !     kdn  : minimum wave number in v/mechanical forcing
 !     kup  : maximum wave number in v/mechanical forcing
 !     nu   : kinematic viscosity
+!     hnu  : hypoviscosity
+!     hek  : hyperviscosity power (nabla^(2*hek))
+!     hok  : hypoviscosity power (nabla^(-2*hok))
 !     fparam0-9 : ten real numbers to control properties of 
 !            the mechanical forcing
 !     vparam0-9 : ten real numbers to control properties of
@@ -431,7 +450,11 @@
       CALL MPI_BCAST(kdn,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(kup,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(nu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hnu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hek,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(hok,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(vparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam2,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam3,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
@@ -441,7 +464,6 @@
       CALL MPI_BCAST(fparam7,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam8,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(fparam9,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(vparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(vparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(vparam2,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(vparam3,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
@@ -461,6 +483,9 @@
 !     mkdn : minimum wave number in B/electromotive forcing
 !     mkup : maximum wave number in B/electromotive forcing
 !     mu   : magnetic diffusivity
+!     hmu  : hypodiffusivity
+!     hem  : hyperdiffusivity power (nabla^(2*hek))
+!     hom  : hypodiffusivity power (nabla^(-2*hok))
 !     corr : correlation between the fields (0 to 1)
 !     mparam0-9 : ten real numbers to control properties of 
 !            the electromotive forcing
@@ -479,6 +504,7 @@
       CALL MPI_BCAST(mu,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(corr,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(aparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam2,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam3,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
@@ -488,7 +514,6 @@
       CALL MPI_BCAST(mparam7,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam8,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(mparam9,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-      CALL MPI_BCAST(aparam0,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(aparam1,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(aparam2,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
       CALL MPI_BCAST(aparam3,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
@@ -610,6 +635,23 @@
       CALL MPI_BCAST(switch,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
 #endif
 
+#ifdef CFL_
+! Reads parameters for CFL condition
+!     cfl       : safety factor for cfl condition
+! A few parameter inputs during restarted simulations:
+!     time      : time
+!     timef_in  : timer for correlation of forcing (outputted)
+!
+      IF (myrank.eq.0) THEN
+         OPEN(1,file='parameter.inp',status='unknown',form="formatted")
+         READ(1,NML=cflcond)
+         CLOSE(1)
+      ENDIF
+      CALL MPI_BCAST(cfl,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(time,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+      CALL MPI_BCAST(timef_in,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+#endif
+
 !
 ! Sets the external forcing
       INCLUDE 'initialfv.f90'        ! mechanical forcing
@@ -631,7 +673,14 @@
       timet = tstep
       timec = cstep
       times = sstep
+#ifdef CFL_
+      time = 0.0_GP  ! in case stat=0 but time=/=0 in parameter file
+#endif
+#ifdef CFL_
+      timef = cort
+#else
       timef = fstep
+#endif
       INCLUDE 'initialv.f90'         ! initial velocity
 #ifdef VECPOT_
       INCLUDE 'initialb.f90'         ! initial vector potential
@@ -651,7 +700,11 @@
       timet = 0
       times = int(modulo(float(ini-1),float(sstep)))
       timec = int(modulo(float(ini-1),float(cstep)))
+#ifdef CFL_
+      timef = timef_in
+#else
       timef = int(modulo(float(ini-1),float(fstep)))
+#endif
 
 #ifdef STREAM_
       CALL io_read(1,idir,'ps',ext,planio,R1)
@@ -692,6 +745,17 @@
 
       ENDIF IC
 
+! Call CFL in case rand.eq.1 and we have to re-scale the forcing with
+! f0/sqrt(dt)
+#ifdef CFL_
+    #ifdef HD_SOL
+                INCLUDE 'hd_cfl.f90'
+    #endif
+    #ifdef MHD_SOL
+                INCLUDE 'mhd_cfl.f90'
+    #endif
+#endif
+
 !
 ! Time integration scheme starts here.
 ! Does ord iterations of Runge-Kutta. If 
@@ -704,12 +768,24 @@
       ENDIF
 
  RK : DO t = ini,step
+#ifdef CFL_
+    #ifdef HD_SOL
+                INCLUDE 'hd_cfl.f90'
+    #endif
+    #ifdef MHD_SOL
+                INCLUDE 'mhd_cfl.f90'
+    #endif
+#endif
 
 ! Updates the external forcing. Every 'fsteps'
 ! the phase is changed according to the value
 ! of 'rand'.
 
-         IF (timef.eq.fstep) THEN
+#ifdef CFL_
+          IF (timef.ge.cort) THEN
+#else
+          IF (timef.eq.fstep) THEN
+#endif 
             timef = 0
 
             IF (rand.eq.1) THEN      ! randomizes phases
@@ -821,6 +897,13 @@
             timet = 0
             tind = tind+1
             WRITE(ext, fmtext) tind
+#ifdef CFL_
+           IF (myrank.eq.0) THEN
+                OPEN(1,file='time_field.txt',position='append')
+                WRITE(1,FMT='(A4, F12.6, F12.6)') ext,time,timef
+                CLOSE(1)
+           ENDIF
+#endif
             rmp = 1./real(n,kind=GP)**2
 #ifdef STREAM_
             DO i = ista,iend
@@ -918,9 +1001,16 @@
 
 ! Every 'cstep' steps, generates external files 
 ! with global quantities.
-
          IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
             timec = 0
+
+! Making dump the time, because now mhdcheck (need to change this for
+! other global) takes in time, real number, as an input.
+#ifdef CFL_
+           dump = time
+#else
+           dump = (t-1)*dt
+#endif
 #ifdef HD_SOL
             INCLUDE 'hd_global.f90'
 #endif
@@ -951,6 +1041,13 @@
             times = 0
             sind = sind+1
             WRITE(ext, fmtext) sind
+#ifdef CFL_
+           IF (myrank.eq.0) THEN
+                OPEN(1,file='time_spec.txt',position='append')
+                WRITE(1,FMT='(A4,F12.6)') ext,time
+                CLOSE(1)
+           ENDIF
+#endif
 #ifdef HD_SOL
             INCLUDE 'hd_spectrum.f90'
 #endif
@@ -1035,7 +1132,12 @@
          timet = timet+1
          times = times+1
          timec = timec+1
+#ifdef CFL_
+         time = time+dt
+         timef = timef+dt
+#else
          timef = timef+1
+#endif
 
       END DO RK
 

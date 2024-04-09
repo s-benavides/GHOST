@@ -14,6 +14,7 @@
 #ifdef HD_SOL
 #define DNS_
 #define STREAM_
+#define CFL_
 #endif
 
 #ifdef PHD_SOL
@@ -26,6 +27,7 @@
 #define DNS_
 #define STREAM_
 #define VECPOT_
+#define CFL_
 #endif
 
 #ifdef MHDB_SOL

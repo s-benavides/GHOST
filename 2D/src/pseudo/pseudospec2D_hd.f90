@@ -252,7 +252,7 @@
       END SUBROUTINE energy
 
 !*****************************************************************
-      SUBROUTINE maxabs(a,b,c,d)
+      SUBROUTINE maxabs(a,b)
 !-----------------------------------------------------------------
 !
 ! Computes the maximum absolute value of the 
@@ -262,8 +262,6 @@
 ! Parameters
 !     a: input field
 !     b: at the output contains the maximum value
-!     c: at the output contains the i-index where the maximum is
-!     d: at the output contains the j-index where the maximum is
 !
       USE fprecision
       USE commtypes
@@ -277,7 +275,6 @@
       REAL(KIND=GP), DIMENSION(n,jsta:jend)    :: r1
       REAL(KIND=GP), INTENT(OUT)               :: b
       REAL(KIND=GP)        :: bloc
-      INTEGER, INTENT(OUT) :: c,d
       INTEGER              :: i,j
 
       CALL laplak2(a,c1)

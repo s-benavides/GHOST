@@ -3,7 +3,7 @@
 idir = "../ins"
 odir = "../outs"
 stat = 0         ! last binary file if restarting an old run
-mult = 1         ! decreases the time step
+mult = 1         ! decreases the time step (dt/mult)
 bench = 0        ! benchmark mode if 1
 outs = 0         ! controls the amount of output
 trans = 1        ! computes energy transfer if 1
@@ -35,11 +35,11 @@ u0 = 0.10        ! amplitude of the initial velocity field
 kdn = 8.00       ! minimum wavenumber
 kup = 10.00      ! maximum wavenumber
 nu = 3.e-4       ! kinematic viscosity
-hnu = 2.e-1       ! kinematic (hypo)viscosity
+hnu = 2.e-1      ! kinematic (hypo)viscosity
 hek = 2          ! hyperviscosity power (nabla^(2*hek))
 hok = 1          ! hypoviscosity power (nabla^(-2*hok))
 fparam0 = 0.90   ! fparam0-9 can be used to control the forcing
-vparam0 = 0.10   ! idem for the initial velocity field
+vparam0 = 0.10   ! vparam0-9 can be used to control the initial velocity field
 /
 
 ! Parameters for the magnetic field (MHD, HMHD solvers)
@@ -53,8 +53,8 @@ hmu = 2.e-1      ! magnetic (hypo)viscosity
 hem = 2          ! hyperviscosity power (nabla^(2*hek))
 hom = 1          ! hypoviscosity power (nabla^(-2*hok))
 corr = 0         ! correlation between the fields/forcings
-mparam0 = 0.90   ! mparam0-9 can be used to control the forcing
-aparam0 = 0.10   ! idem for the initial magnetic field
+mparam0 = 0.90   ! mparam0-9 can be used to control the magnetic forcing
+aparam0 = 0.10   ! aparam0-9 can be used to control the initial magnetic field
 / 
 
 ! Parameters for the passive/active scalar (PHD, SWHD solvers)
