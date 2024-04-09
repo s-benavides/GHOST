@@ -484,8 +484,8 @@
 !     mkup : maximum wave number in B/electromotive forcing
 !     mu   : magnetic diffusivity
 !     hmu  : hypodiffusivity
-!     hem  : hyperdiffusivity power (nabla^(2*hek))
-!     hom  : hypodiffusivity power (nabla^(-2*hok))
+!     hem  : hyperdiffusivity power (nabla^(2*hem))
+!     hom  : hypodiffusivity power (nabla^(-2*hom))
 !     corr : correlation between the fields (0 to 1)
 !     mparam0-9 : ten real numbers to control properties of 
 !            the electromotive forcing
@@ -748,12 +748,12 @@
 ! Call CFL in case rand.eq.1 and we have to re-scale the forcing with
 ! f0/sqrt(dt)
 #ifdef CFL_
-    #ifdef HD_SOL
-                INCLUDE 'hd_cfl.f90'
-    #endif
-    #ifdef MHD_SOL
-                INCLUDE 'mhd_cfl.f90'
-    #endif
+#ifdef HD_SOL
+            INCLUDE 'hd_cfl.f90'
+#endif
+#ifdef MHD_SOL
+            INCLUDE 'mhd_cfl.f90'
+#endif
 #endif
 
 !
@@ -769,14 +769,50 @@
 
  RK : DO t = ini,step
 #ifdef CFL_
-    #ifdef HD_SOL
-                INCLUDE 'hd_cfl.f90'
-    #endif
-    #ifdef MHD_SOL
-                INCLUDE 'mhd_cfl.f90'
-    #endif
+#ifdef HD_SOL
+            INCLUDE 'hd_cfl.f90'
+#endif
+#ifdef MHD_SOL
+            INCLUDE 'mhd_cfl.f90'
+#endif
 #endif
 
+! Doing global output before re-defining the forcing in case random forcing is present.
+! Every 'cstep' steps, generates external files 
+! with global quantities.
+         IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
+            timec = 0
+
+! Making dump the time, because now mhdcheck (need to change this for
+! other global) takes in time, real number, as an input.
+#ifdef CFL_
+           dump = time
+#else
+           dump = (t-1)*dt
+#endif
+#ifdef HD_SOL
+            INCLUDE 'hd_global.f90'
+#endif
+#ifdef MHD_SOL
+            INCLUDE 'mhd_global.f90'
+#endif
+#ifdef MHDB_SOL
+            INCLUDE 'mhd_global.f90'
+#endif
+#ifdef HMHD_SOL
+            INCLUDE 'hmhd_global.f90'
+#endif
+#ifdef SQG_SOL
+            INCLUDE 'sqg_global.f90'
+#endif
+#ifdef PHD_SOL
+            INCLUDE 'phd_global.f90'
+#endif
+#ifdef SWHD_SOL
+            INCLUDE 'swhd_global.f90'
+#endif
+         ENDIF
+         
 ! Updates the external forcing. Every 'fsteps'
 ! the phase is changed according to the value
 ! of 'rand'.
@@ -997,41 +1033,6 @@
             CALL io_write(1,odir,'vy',ext,planio,R1)
 #endif
 
-         ENDIF
-
-! Every 'cstep' steps, generates external files 
-! with global quantities.
-         IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
-            timec = 0
-
-! Making dump the time, because now mhdcheck (need to change this for
-! other global) takes in time, real number, as an input.
-#ifdef CFL_
-           dump = time
-#else
-           dump = (t-1)*dt
-#endif
-#ifdef HD_SOL
-            INCLUDE 'hd_global.f90'
-#endif
-#ifdef MHD_SOL
-            INCLUDE 'mhd_global.f90'
-#endif
-#ifdef MHDB_SOL
-            INCLUDE 'mhd_global.f90'
-#endif
-#ifdef HMHD_SOL
-            INCLUDE 'hmhd_global.f90'
-#endif
-#ifdef SQG_SOL
-            INCLUDE 'sqg_global.f90'
-#endif
-#ifdef PHD_SOL
-            INCLUDE 'phd_global.f90'
-#endif
-#ifdef SWHD_SOL
-            INCLUDE 'swhd_global.f90'
-#endif
          ENDIF
 
 ! Every 'sstep' steps, generates external files 
