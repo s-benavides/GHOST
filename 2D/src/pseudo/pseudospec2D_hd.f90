@@ -440,7 +440,7 @@
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
-         OPEN(1,file='energy.txt',position='append')
+         OPEN(1,file='energy_k.txt',position='append')
          WRITE(1,10) t,enk,denk,henk,injk,enkf
    10    FORMAT( E26.18,E26.18,E26.18,E26.18,E26.18,E26.18 )
          CLOSE(1)
