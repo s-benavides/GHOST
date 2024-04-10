@@ -1,5 +1,5 @@
 ! Global quantities computed in HD runs
-            CALL hdcheck(ps,fk,(t-1)*dt)
+            CALL hdcheck(ps,fk,dump,nu,hnu,hek,hok,kdn,kup)
 !           CALL maxabs(ps,rmp,ki,kj)
 !           IF (myrank.eq.0) THEN
 !              OPEN(1,file='maximum.txt',position='append')

@@ -252,6 +252,66 @@
       END SUBROUTINE energy
 
 !*****************************************************************
+      SUBROUTINE energy2(a,b,kin)
+!-----------------------------------------------------------------
+!
+! Computes the mean energy of a vector field.
+! The output is only valid in the first node.
+!
+! Parameters
+!     a  : input matrix with the scalar field
+!     d  : at the output contains the energy
+!     kin: power of nabla: k^(2*kin) 
+
+      USE fprecision
+      USE commtypes
+      USE mpivars
+      USE grid
+      USE kes
+      USE ali
+      IMPLICIT NONE
+
+      COMPLEX(KIND=GP), INTENT(IN), DIMENSION(n,ista:iend) :: a
+      DOUBLE PRECISION, INTENT(OUT) :: b
+      DOUBLE PRECISION              :: bloc
+      REAL(KIND=GP)                 :: tmp
+      INTEGER, INTENT(IN) :: kin
+      INTEGER             :: i,j,two
+
+      bloc = 0.0D0
+      tmp = 1.0_GP/real(n,kind=GP)**4
+!
+! Computes k^(2*kin)*abs(a)^2
+!
+        IF (kin.ge.0) THEN
+            DO i = ista,iend
+               two = 2
+               if (i.eq.1) two = 1  
+               DO j = 1,n
+                  bloc = bloc+two*abs(a(j,i))**2*ka2(j,i)**kin*tmp
+               END DO
+            END DO
+        ELSE
+        DO i = ista,iend
+               two = 2
+               if (i.eq.1) two = 1
+               DO j = 1,n
+                  if (ka2(j,i).ge.tiny) then
+                  bloc = bloc+two*abs(a(j,i))**2*ka2(j,i)**kin*tmp
+                  endif
+               END DO
+            END DO
+        ENDIF
+!
+! Computes the reduction between nodes
+!
+      CALL MPI_REDUCE(bloc,b,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+
+      RETURN
+      END SUBROUTINE energy2
+
+!*****************************************************************
       SUBROUTINE maxabs(a,b)
 !-----------------------------------------------------------------
 !
@@ -292,7 +352,7 @@
       END SUBROUTINE maxabs
 
 !*****************************************************************
-      SUBROUTINE hdcheck(a,b,t)
+      SUBROUTINE hdcheck(a,b,t,nu,hnu,hek,hok,kdn,kup)
 !-----------------------------------------------------------------
 !
 ! Consistency check for the conservation of energy in HD 2D
@@ -310,46 +370,78 @@
       IMPLICIT NONE
 
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(n,ista:iend) :: a,b
-      DOUBLE PRECISION :: eng,ens,pot,tmp
-      REAL(KIND=GP) :: t
+      DOUBLE PRECISION, INTENT(IN)  :: nu,hnu
+      DOUBLE PRECISION :: enk,henk,denk,inj
+      DOUBLE PRECISION :: enkf,tmp,tmp2
+!      DOUBLE PRECISION :: enst,henst,denst
+      REAL(KIND=GP), INTENT(IN) :: t
+      REAL(KIND=GP), INTENT(IN) :: kup,kdn
       REAL(KIND=GP) :: tmq
       INTEGER       :: i,j
-
+      INTEGER, INTENT(IN) :: hek,hok ! Hyperviscosity powers
       tmq = 1.0_GP/real(n,kind=GP)**4
 !
 ! Computes the mean energy and enstrophy
 !
-      CALL energy(a,eng,1)
-      CALL energy(a,ens,0)
+      CALL energy(a,enk,1) ! Mean energy
+      CALL energy2(a,denk,1+hek) ! Mean hyperdissipation
+      denk = nu*denk
+      CALL energy2(a,henk,1-hok) ! Mean hypodissipation
+      henk = hnu*henk
+      
+!      CALL energy(a,enst,0) ! Mean enstrophy
+!      CALL energy2(a,denst,hek+2) ! Mean enstrophy hyperdissipation
+!      denst = nu*denst
+!      CALL energy2(a,henst,2-hok) ! Mean enstrophy hypodissipation
+!      henst = hnu*henst
 !
-! Computes the energy injection rate
+! Computes the energy injection rate and energy at forcing scale
 !
       tmp = 0.0D0
       IF (ista.eq.1) THEN
          DO j = 1,n
+            ! Injection rate
             tmp = tmp+ka2(j,1)*real(b(j,1)*conjg(a(j,1)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,1).gt.(kdn**2/2.0)).and.(ka2(j,1).le.(kup**2*2.0))) THEN
+                tmp2 = tmp2+ka2(j,1)*abs(a(j,1))**2*tmq
+            ENDIF
          END DO
          DO i = 2,iend
             DO j = 1,n
+            ! Injection rate
                tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,i).gt.(kdn**2/2.0)).and.(ka2(j,i).le.(kup**2*2.0))) THEN
+                tmp2 = tmp2+2*ka2(j,i)*abs(a(j,i))**2*tmq
+            ENDIF
             END DO
          END DO
       ELSE
          DO i = ista,iend
             DO j = 1,n
+            ! Injection rate
                tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,i).gt.(kdn**2/2.0)).and.(ka2(j,i).le.(kup**2*2.0))) THEN
+                tmp2 = tmp2+2*ka2(j,i)*abs(a(j,i))**2*tmq
+            ENDIF
             END DO
          END DO
       ENDIF
-      CALL MPI_REDUCE(tmp,pot,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+      CALL MPI_REDUCE(tmp,inj,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
                       MPI_COMM_WORLD,ierr)
+
+      CALL MPI_REDUCE(tmp2,enkf,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+
 !
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
          OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,ens,pot
-   10    FORMAT( E13.6,E26.18,E26.18,E26.18 )
+         WRITE(1,10) t,enk,denk,henk,inj,enkf
+   10    FORMAT( E26.18,E26.18,E26.18,E26.18,E26.18,E26.18 )
          CLOSE(1)
       ENDIF      
 
