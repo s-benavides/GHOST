@@ -783,8 +783,7 @@
          IF ((timec.eq.cstep).and.(bench.eq.0)) THEN
             timec = 0
 
-! Making dump the time, because now mhdcheck (need to change this for
-! other global) takes in time, real number, as an input.
+! Making dump the time, because now hdcheck and mhdcheck takes in time (real number) as an input.
 #ifdef CFL_
            dump = time
 #else
