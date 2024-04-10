@@ -575,14 +575,14 @@
          DO j = 1,n
             kmn = int(sqrt(ka2(j,1))+.501)
             IF ((kmn.gt.0).and.(kmn.le.n/2+1)) THEN
-              Ek(kmn) = Ek(kmn)-real(a(j,1)*conjg(b(j,1)))*tmp
+              Ek(kmn) = Ek(kmn)+real(a(j,1)*conjg(b(j,1)))*tmp
             ENDIF
          END DO
          DO i = 2,iend
             DO j = 1,n
                kmn = int(sqrt(ka2(j,i))+.5)
                IF (kmn.le.n/2+1) THEN
-                  Ek(kmn) = Ek(kmn)-2*real(a(j,i)*conjg(b(j,i)))*tmp
+                  Ek(kmn) = Ek(kmn)+2*real(a(j,i)*conjg(b(j,i)))*tmp
                ENDIF
             END DO
          END DO
@@ -591,7 +591,7 @@
             DO j = 1,n
                kmn = int(sqrt(ka2(j,i))+.5)
                IF (kmn.le.n/2+1) THEN
-                  Ek(kmn) = Ek(kmn)-2*real(a(j,i)*conjg(b(j,i)))*tmp
+                  Ek(kmn) = Ek(kmn)+2*real(a(j,i)*conjg(b(j,i)))*tmp
                ENDIF
             END DO
          END DO

@@ -1,9 +1,9 @@
 ! Step 2 of Runge-Kutta for the HD equations
 ! Computes the nonlinear terms and evolves the equations in dt/o
-         CALL laplak2(ps,C2)   ! Vorticity W = -k^2 * psi
-         CALL poisson(ps,C2,ps) ! [psi, W]
+         CALL laplak2(ps,C2)   ! Vorticity -W = -k^2 * psi
+         CALL poisson(ps,C2,ps) ! -curl( u x W ) = [psi,W]
          IF ((trans.eq.1).and.(times.eq.0).and.(bench.eq.0).and.(o.eq.ord)) &
-            CALL entrans(C1,ps,ext)
+            CALL entrans(C1,ps,ext) ! psi [psi,W]
 
          rmp = 1.0_GP/real(o,kind=GP)
          DO i = ista,iend
