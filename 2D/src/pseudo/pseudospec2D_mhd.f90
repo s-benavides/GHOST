@@ -78,7 +78,7 @@
       END SUBROUTINE poissonb0
 
 !*****************************************************************
-      SUBROUTINE mhdcheck(a,b,c,d,t)
+      SUBROUTINE mhdcheck(a,b,c,d,t,nu,hnu,mu,hmu,hek,hok,hem,hom,kdn,kup,mkdn,mkup)
 !-----------------------------------------------------------------
 !
 ! Consistency check for the conservation of energy in MHD 2D
@@ -95,13 +95,21 @@
       USE mpivars
       USE grid
       USE kes
+      USE ali
       IMPLICIT NONE
 
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(n,ista:iend) :: a,b,c,d
-      DOUBLE PRECISION :: engk,engm,eng,asq,udb
-      DOUBLE PRECISION :: potk,potm,ens,cur,tmp
-      REAL(KIND=GP) :: t
+      DOUBLE PRECISION, INTENT(IN)  :: nu,hnu,mu,hmu
+      DOUBLE PRECISION :: enk, denk, henk, injk, enkf  ! KE
+      DOUBLE PRECISION :: enm, denm, henm, injm, enmf  ! ME
+      DOUBLE PRECISION :: asq, dasq, hasq, inja, asqf  ! A^2
+      DOUBLE PRECISION :: entot, tmp0, tmp1, tmp2, tmp3, tmp4, tmp5
+      REAL(KIND=GP), INTENT(IN) :: t
+      REAL(KIND=GP), INTENT(IN) :: kup,kdn
+      REAL(KIND=GP), INTENT(IN) :: mkup,mkdn
       REAL(KIND=GP) :: tmq
+      INTEGER, INTENT(IN) :: hek,hok ! Hyperviscosity powers
+      INTEGER, INTENT(IN) :: hem,hom ! Hyperviscosity powers
       INTEGER       :: i,j
 
       tmq = 1.0_GP/real(n,kind=GP)**4
@@ -109,96 +117,131 @@
 ! Computes the mean energy, enstrophy, square 
 ! current, and square vector potential.
 !
-      CALL energy(a,engk,1)
-      CALL energy(b,engm,1)
-      CALL energy(a,ens,0)
-      CALL energy(b,cur,0)
-      CALL energy(b,asq,2)
-      eng = engk+engm
+!! ENERGY
+!       KINETIC 
+      CALL energy(a,enk,1) ! Mean kinetic energy
+      CALL energy2(a,denk,1+hek) ! Mean kinetic hyperdissipation
+      denk = nu*denk
+      CALL energy2(a,henk,1-hok) ! Mean kinetic hypodissipation
+      henk = hnu*henk
+!       MAGNETIC
+      CALL energy(b,enm,1) ! Mean magnetic energy
+      CALL energy2(b,denm,1+hem) ! Mean magnetic hyperdissipation
+      denm = mu*denm
+      CALL energy2(b,henm,1-hom) ! Mean magnetic hypodissipation
+      henm = hmu*henm
+
+      entot = enk + enm
+      
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     SQUARE VECTOR POTENTIAL
+      CALL energy(b,asq,2)            ! A^2
+      CALL energy(b,dasq, hem)         ! Diss
+      dasq = mu*dasq
+      CALL energy(b,hasq,-hom)         ! Hypodiss
+      hasq = hmu*hasq      
+
 !
-! Computes the kinetic energy injection rate
+! Computes, for KE, ME, and A^2 the (1) energy injection rate and (2) energy at forcing scale
 !
-      tmp = 0.0D0
+      tmp0 = 0.0D0
+      tmp1 = 0.0D0
+      tmp2 = 0.0D0
+      tmp3 = 0.0D0
+      tmp4 = 0.0D0
+      tmp5 = 0.0D0
       IF (ista.eq.1) THEN
          DO j = 1,n
-            tmp = tmp+ka2(j,1)*real(c(j,1)*conjg(a(j,1)))*tmq
+            tmp0 = tmp0+real(d(j,1)*conjg(b(j,1)))*tmq
+            tmp1 = tmp1+ka2(j,1)*real(c(j,1)*conjg(a(j,1)))*tmq
+            tmp2 = tmp2+ka2(j,1)*real(d(j,1)*conjg(b(j,1)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,1).gt.(kdn**2/2.0)).and.(ka2(j,1).le.(kup**2*2.0))) THEN
+                tmp4 = tmp4+ka2(j,1)*abs(a(j,1))**2*tmq
+            ELSE IF ((ka2(j,1).gt.(mkdn**2/2.0)).and.(ka2(j,1).le.(mkup**2*2.0))) THEN
+                tmp3 = tmp3+abs(b(j,1))**2*tmq
+                tmp5 = tmp5+ka2(j,1)*abs(b(j,1))**2*tmq
+            ENDIF
          END DO
          DO i = 2,iend
             DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(c(j,i)*conjg(a(j,i)))*tmq
+               tmp0 = tmp0+2*real(d(j,i)*conjg(b(j,i)))*tmq
+               tmp1 = tmp1+2*ka2(j,i)*real(c(j,i)*conjg(a(j,i)))*tmq
+               tmp2 = tmp2+2*ka2(j,i)*real(d(j,i)*conjg(b(j,i)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,i).gt.(kdn**2/2.0)).and.(ka2(j,i).le.(kup**2*2.0))) THEN
+                tmp4 = tmp4+2*ka2(j,i)*abs(a(j,i))**2*tmq
+            ELSE IF ((ka2(j,i).gt.(mkdn**2/2.0)).and.(ka2(j,i).le.(mkup**2*2.0))) THEN
+                tmp3 = tmp3+2*abs(b(j,i))**2*tmq
+                tmp5 = tmp5+2*ka2(j,i)*abs(b(j,i))**2*tmq
+            ENDIF
             END DO
          END DO
       ELSE
          DO i = ista,iend
             DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(c(j,i)*conjg(a(j,i)))*tmq
+               tmp0 = tmp0+2*real(d(j,i)*conjg(b(j,i)))*tmq
+               tmp1 = tmp1+2*ka2(j,i)*real(c(j,i)*conjg(a(j,i)))*tmq
+               tmp2 = tmp2+2*ka2(j,i)*real(d(j,i)*conjg(b(j,i)))*tmq
+            ! Energy at forcing scale
+            IF ((ka2(j,i).gt.(kdn**2/2.0)).and.(ka2(j,i).le.(kup**2*2.0))) THEN
+                tmp4 = tmp4+2*ka2(j,i)*abs(a(j,i))**2*tmq
+            ELSE IF ((ka2(j,i).gt.(mkdn**2/2.0)).and.(ka2(j,i).le.(mkup**2*2.0))) THEN
+                tmp3 = tmp3+2*abs(b(j,i))**2*tmq
+                tmp5 = tmp5+2*ka2(j,i)*abs(b(j,i))**2*tmq
+            ENDIF
             END DO
          END DO
       ENDIF
-      CALL MPI_REDUCE(tmp,potk,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+      CALL MPI_REDUCE(tmp0,inja,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
                       MPI_COMM_WORLD,ierr)
-!
-! Computes the magnetic energy injection rate
-!
-      tmp = 0.0D0
-      IF (ista.eq.1) THEN
-         DO j = 1,n
-            tmp = tmp+ka2(j,1)*real(d(j,1)*conjg(b(j,1)))*tmq
-         END DO
-         DO i = 2,iend
-            DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(d(j,i)*conjg(b(j,i)))*tmq
-            END DO
-         END DO
-      ELSE
-         DO i = ista,iend
-            DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(d(j,i)*conjg(b(j,i)))*tmq
-            END DO
-         END DO
-      ENDIF
-      CALL MPI_REDUCE(tmp,potm,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+      CALL MPI_REDUCE(tmp1,injk,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
                       MPI_COMM_WORLD,ierr)
-!
-! Computes the cross correlation between
-! velocity and magnetic fields
-!
-      tmp = 0.
-      IF (ista.eq.1) THEN
-         DO j = 1,n
-            tmp = tmp+ka2(j,1)*real(b(j,1)*conjg(a(j,1)))*tmq
-         END DO
-         DO i = 2,iend
-            DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
-            END DO
-         END DO
-      ELSE
-         DO i = ista,iend
-            DO j = 1,n
-               tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
-            END DO
-         END DO
-      ENDIF
-      CALL MPI_REDUCE(tmp,udb,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+      CALL MPI_REDUCE(tmp2,injm,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
                       MPI_COMM_WORLD,ierr)
+      CALL MPI_REDUCE(tmp3,asqf,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+      CALL MPI_REDUCE(tmp4,enkf,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+      CALL MPI_REDUCE(tmp5,enmf,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+                      MPI_COMM_WORLD,ierr)
+
+!!
+!! Computes the cross correlation between
+!! velocity and magnetic fields
+!!
+!      tmp = 0.
+!      IF (ista.eq.1) THEN
+!         DO j = 1,n
+!            tmp = tmp+ka2(j,1)*real(b(j,1)*conjg(a(j,1)))*tmq
+!         END DO
+!         DO i = 2,iend
+!            DO j = 1,n
+!               tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
+!            END DO
+!         END DO
+!      ELSE
+!         DO i = ista,iend
+!            DO j = 1,n
+!               tmp = tmp+2*ka2(j,i)*real(b(j,i)*conjg(a(j,i)))*tmq
+!            END DO
+!         END DO
+!      ENDIF
+!      CALL MPI_REDUCE(tmp,udb,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+!                      MPI_COMM_WORLD,ierr)
 !
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
-         OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,eng,ens,cur
-   10    FORMAT( E13.6,E22.14,E22.14,E22.14 )
+         OPEN(1,file='energy_k.txt',position='append')
+         WRITE(1,10) t,enk,denk,henk,injk,enkf
+   10    FORMAT( E26.18,E26.18,E26.18,E26.18,E26.18,E26.18 )
          CLOSE(1)
-         OPEN(1,file='cross.txt',position='append')
-         WRITE(1,10) t,udb,asq
-   20    FORMAT( E13.6,E22.14,E22.14 )
+         OPEN(1,file='energy_m.txt',position='append')
+         WRITE(1,10) t,enm,denm,henm,injm,enmf
          CLOSE(1)
-         OPEN(1,file='energy.txt',position='append')
-         WRITE(1,20) t,engk,engm
-         CLOSE(1)
-         OPEN(1,file='inject.txt',position='append')
-         WRITE(1,20) t,potk,potm
+         OPEN(1,file='energy_a.txt',position='append')
+         WRITE(1,10) t,asq,dasq,hasq,inja,asqf
          CLOSE(1)
       ENDIF      
 
