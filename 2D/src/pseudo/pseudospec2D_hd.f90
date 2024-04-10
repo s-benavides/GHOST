@@ -371,7 +371,7 @@
 
       COMPLEX(KIND=GP), INTENT(IN), DIMENSION(n,ista:iend) :: a,b
       DOUBLE PRECISION, INTENT(IN)  :: nu,hnu
-      DOUBLE PRECISION :: enk,henk,denk,inj
+      DOUBLE PRECISION :: enk,henk,denk,injk
       DOUBLE PRECISION :: enkf,tmp,tmp2
 !      DOUBLE PRECISION :: enst,henst,denst
       REAL(KIND=GP), INTENT(IN) :: t
@@ -379,6 +379,7 @@
       REAL(KIND=GP) :: tmq
       INTEGER       :: i,j
       INTEGER, INTENT(IN) :: hek,hok ! Hyperviscosity powers
+      
       tmq = 1.0_GP/real(n,kind=GP)**4
 !
 ! Computes the mean energy and enstrophy
@@ -429,7 +430,7 @@
             END DO
          END DO
       ENDIF
-      CALL MPI_REDUCE(tmp,inj,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
+      CALL MPI_REDUCE(tmp,injk,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
                       MPI_COMM_WORLD,ierr)
 
       CALL MPI_REDUCE(tmp2,enkf,1,MPI_DOUBLE_PRECISION,MPI_SUM,0, &
@@ -439,8 +440,8 @@
 ! Creates external files to store the results
 !
       IF (myrank.eq.0) THEN
-         OPEN(1,file='balance.txt',position='append')
-         WRITE(1,10) t,enk,denk,henk,inj,enkf
+         OPEN(1,file='energy.txt',position='append')
+         WRITE(1,10) t,enk,denk,henk,injk,enkf
    10    FORMAT( E26.18,E26.18,E26.18,E26.18,E26.18,E26.18 )
          CLOSE(1)
       ENDIF      
