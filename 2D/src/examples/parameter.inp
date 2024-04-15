@@ -16,7 +16,7 @@ step = 3600001     ! total number of steps
 tstep = 2300      ! number of steps between binary output
 sstep = 230      ! number of steps between spectrum output
 cstep = 23       ! number of steps between writing global quantities
-rand = 1         ! random phases if 1
+rand = 1         ! random forcing and constant energy injection if rand = 1
 cort = 1.0e-10    ! correlation time of the external forcing. if cort=dt, then updates every step (white noise)
 seed = 1000      ! seed for the random number generator
 /
