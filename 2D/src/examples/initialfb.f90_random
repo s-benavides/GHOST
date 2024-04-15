@@ -1,0 +1,54 @@
+! External magnetic forcing.
+! This file contains the expression used for the external
+! magnetic forcing. 
+
+! Random forcing (by Santiago J. Benavides)
+! This function is meant to be used when rand = 1. It is
+! made to choose one wavevector randomly, then making fk,
+! except at k_f, where it is random.
+! 
+! If rand = 1, then this forcing function will give an
+! energy injection rate of m0 between kup. 
+!
+! Pick random wavenumber of length close to kup:
+      IF (myrank.eq.0) THEN
+        tmp = randu(seed)*pi/2  ! theta = np.arctan(kx/ky), theta between -pi/2 and pi/2. Choosing this range so that kx > 0, which is the case for us.
+        tmpp = randu(seed+1)*pi  ! Complex phase of mode. Between -pi and pi.
+        tmq = floor(kup*cos(theta)+0.5)  ! kx
+        tmqq = floor(kup*sin(theta)+0.5) ! ky
+      ENDIF
+      
+     CALL MPI_BCAST(tmq,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr) !kx
+     CALL MPI_BCAST(tmqq,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr) !ky
+     CALL MPI_BCAST(tmpp,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr) !phase
+     
+      DO i = ista,iend
+         IF (i.ne.1) THEN
+         DO j = 1,n
+            IF ((ka(i).eq.tmq).and.(ka(j).eq.tmqq)) THEN
+            mk(j,i) = (cos(tmpp)+im*sin(tmpp))/sqrt(ka2(j,i))
+            ELSE
+            mk(j,i) = 0.0_GP
+            ENDIF
+         END DO
+         ELSE IF (i.eq.1) THEN
+         mk(    1,i) = 0.0_GP
+         mk(n/2+1,i) = 0.0_GP
+         DO j = 2,n/2
+            IF ((ka(i).eq.tmq).and.((ka(j).eq.tmqq).or.(ka(j).eq.(-tmqq)))) THEN
+               mk(j,i) = (cos(tmpp)+im*sin(tmpp))/sqrt(ka2(j,i))
+               mk(n-j+2,i) = conjg(mk(j,i))
+            ELSE
+               mk(j,i) = 0.0_GP
+               mk(n-j+2,i) = 0.0_GP
+            ENDIF
+         END DO
+         ENDIF
+      END DO
+      
+      IF (rand.eq.1) THEN
+              dump = sqrt(2.0d0*m0)/sqrt(dt)  ! So that inj = m0
+      ELSE 
+              dump = m0
+      ENDIF
+      CALL normalize(mk,dump,1,MPI_COMM_WORLD)
