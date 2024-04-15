@@ -652,16 +652,6 @@
       CALL MPI_BCAST(timef_in,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
 #endif
 
-!
-! Sets the external forcing
-      INCLUDE 'initialfv.f90'        ! mechanical forcing
-#ifdef VECPOT_
-      INCLUDE 'initialfb.f90'        ! electromotive forcing
-#endif 
-#ifdef SCALAR_
-      INCLUDE 'initialfs.f90'        ! passive/active scalar/topography
-#endif
-
 ! If stat=0 we start a new run.
 ! Generates initial conditions for the fields.
 
@@ -757,6 +747,16 @@
 #endif
 
 !
+! Sets the external forcing
+      INCLUDE 'initialfv.f90'        ! mechanical forcing
+#ifdef VECPOT_
+      INCLUDE 'initialfb.f90'        ! electromotive forcing
+#endif 
+#ifdef SCALAR_
+      INCLUDE 'initialfs.f90'        ! passive/active scalar/topography
+#endif
+
+!
 ! Time integration scheme starts here.
 ! Does ord iterations of Runge-Kutta. If 
 ! we are doing a benchmark, we measure 
@@ -825,105 +825,136 @@
 
             IF (rand.eq.1) THEN      ! randomizes phases
 
-               IF (myrank.eq.0) phase = 2*pi*randu(seed)
-               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-               cdump = COS(phase)+im*SIN(phase)
-               jdump = conjg(cdump)
+            ! Re-defines the external forcing
+            INCLUDE 'initialfv.f90'        ! mechanical forcing
 #ifdef VECPOT_
-               IF (myrank.eq.0) phase = 2*pi*randu(seed)
-               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
-               cdumq = corr*cdump+(1-corr)*(COS(phase)+im*SIN(phase))
-               jdumq = corr*jdump+(1-corr)*conjg(cdump)
-#endif
+            INCLUDE 'initialfb.f90'        ! electromotive forcing
+#endif 
+! Forcing functions that are compatible with scalar solver need to be defined. For now, it will just randomize phases as in the previous version.
 #if defined(SCALAR_) && !defined(SW_)
+            !INCLUDE 'initialfs.f90'        ! passive/active scalar/topography
                IF (myrank.eq.0) phase = 2*pi*randu(seed)
                CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
                cdumr = COS(phase)+im*SIN(phase)
                jdumr = conjg(cdumr)
-#endif
-
                IF (ista.eq.1) THEN
                   DO j = 2,n/2+1
-#ifdef STREAM_
-                     fk(j,1) = fk(j,1)*cdump
-                     fk(n-j+2,1) = fk(n-j+2,1)*jdump
-#ifdef D25_
-                     fz(j,1) = fz(j,1)*cdump
-                     fz(n-j+2,1) = fz(n-j+2,1)*jdump
-#endif
-#endif
-#ifdef VECPOT_
-                     mk(j,1) = mk(j,1)*cdumq
-                     mk(n-j+2,1) = mk(n-j+2,1)*jdumq
-#ifdef D25_
-                     mz(j,1) = mz(j,1)*cdump
-                     mz(n-j+2,1) = mz(n-j+2,1)*jdump
-#endif
-#endif
-#ifdef VELOC_
-                     fx(j,1) = fx(j,1)*cdump
-                     fx(n-j+2,1) = fx(n-j+2,1)*jdump
-                     fy(j,1) = fy(j,1)*cdump
-                     fy(n-j+2,1) = fy(n-j+2,1)*jdump
-#endif
-#if defined(SCALAR_) && !defined(SW_)
                      fs(j,1) = fs(j,1)*cdumr
                      fs(n-j+2,1) = fs(n-j+2,1)*jdumr
-#endif
                   END DO
                   DO i = 2,iend
                      DO j = 1,n
-#ifdef STREAM_
-                        fk(j,i) = fk(j,i)*cdump
-#ifdef D25_
-                        fz(j,i) = fz(j,i)*cdump
-#endif
-#endif
-#ifdef VECPOT_
-                        mk(j,i) = mk(j,i)*cdumq
-#ifdef D25_
-                        mz(j,i) = mz(j,i)*cdump
-#endif
-#endif
-#ifdef VELOC_
-                        fx(j,i) = fx(j,i)*cdump
-                        fy(j,i) = fy(j,i)*cdump
-#endif
-#if defined(SCALAR_) && !defined(SW_)
                         fs(j,i) = fs(j,i)*cdumr
-#endif
-
                      END DO
                   END DO
                ELSE
                   DO i = ista,iend
                      DO j = 1,n
-#ifdef STREAM_
-                        fk(j,i) = fk(j,i)*cdump
-#ifdef D25_
-                        fz(j,i) = fz(j,i)*cdump
-#endif
-#endif
-#ifdef VECPOT_
-                        mk(j,i) = mk(j,i)*cdumq
-#ifdef D25_
-                        mz(j,i) = mz(j,i)*cdump
-#endif
-#endif
-#ifdef VELOC_
-                        fx(j,i) = fx(j,i)*cdump
-                        fy(j,i) = fy(j,i)*cdump
-#endif
-#if defined(SCALAR_) && !defined(SW_)
                         fs(j,i) = fs(j,i)*cdumr
-#endif
                      END DO
                   END DO
                ENDIF
+#endif
 
-            ENDIF
+!               IF (myrank.eq.0) phase = 2*pi*randu(seed)
+!               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+!               cdump = COS(phase)+im*SIN(phase)
+!               jdump = conjg(cdump)
+!#ifdef VECPOT_
+!               IF (myrank.eq.0) phase = 2*pi*randu(seed)
+!               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+!               cdumq = corr*cdump+(1-corr)*(COS(phase)+im*SIN(phase))
+!               jdumq = corr*jdump+(1-corr)*conjg(cdump)
+!#endif
+!#if defined(SCALAR_) && !defined(SW_)
+!               IF (myrank.eq.0) phase = 2*pi*randu(seed)
+!               CALL MPI_BCAST(phase,1,GC_REAL,0,MPI_COMM_WORLD,ierr)
+!               cdumr = COS(phase)+im*SIN(phase)
+!               jdumr = conjg(cdumr)
+!#endif
+!
+!               IF (ista.eq.1) THEN
+!                  DO j = 2,n/2+1
+!#ifdef STREAM_
+!                     fk(j,1) = fk(j,1)*cdump
+!                     fk(n-j+2,1) = fk(n-j+2,1)*jdump
+!#ifdef D25_
+!                     fz(j,1) = fz(j,1)*cdump
+!                     fz(n-j+2,1) = fz(n-j+2,1)*jdump
+!#endif
+!#endif
+!#ifdef VECPOT_
+!                     mk(j,1) = mk(j,1)*cdumq
+!                     mk(n-j+2,1) = mk(n-j+2,1)*jdumq
+!#ifdef D25_
+!                     mz(j,1) = mz(j,1)*cdump
+!                     mz(n-j+2,1) = mz(n-j+2,1)*jdump
+!#endif
+!#endif
+!#ifdef VELOC_
+!                     fx(j,1) = fx(j,1)*cdump
+!                     fx(n-j+2,1) = fx(n-j+2,1)*jdump
+!                     fy(j,1) = fy(j,1)*cdump
+!                     fy(n-j+2,1) = fy(n-j+2,1)*jdump
+!#endif
+!#if defined(SCALAR_) && !defined(SW_)
+!                     fs(j,1) = fs(j,1)*cdumr
+!                     fs(n-j+2,1) = fs(n-j+2,1)*jdumr
+!#endif
+!                  END DO
+!                  DO i = 2,iend
+!                     DO j = 1,n
+!#ifdef STREAM_
+!                        fk(j,i) = fk(j,i)*cdump
+!#ifdef D25_
+!                        fz(j,i) = fz(j,i)*cdump
+!#endif
+!#endif
+!#ifdef VECPOT_
+!                        mk(j,i) = mk(j,i)*cdumq
+!#ifdef D25_
+!                        mz(j,i) = mz(j,i)*cdump
+!#endif
+!#endif
+!#ifdef VELOC_
+!                        fx(j,i) = fx(j,i)*cdump
+!                        fy(j,i) = fy(j,i)*cdump
+!#endif
+!#if defined(SCALAR_) && !defined(SW_)
+!                        fs(j,i) = fs(j,i)*cdumr
+!#endif
+!
+!                     END DO
+!                  END DO
+!               ELSE
+!                  DO i = ista,iend
+!                     DO j = 1,n
+!#ifdef STREAM_
+!                        fk(j,i) = fk(j,i)*cdump
+!#ifdef D25_
+!                        fz(j,i) = fz(j,i)*cdump
+!#endif
+!#endif
+!#ifdef VECPOT_
+!                        mk(j,i) = mk(j,i)*cdumq
+!#ifdef D25_
+!                        mz(j,i) = mz(j,i)*cdump
+!#endif
+!#endif
+!#ifdef VELOC_
+!                        fx(j,i) = fx(j,i)*cdump
+!                        fy(j,i) = fy(j,i)*cdump
+!#endif
+!#if defined(SCALAR_) && !defined(SW_)
+!                        fs(j,i) = fs(j,i)*cdumr
+!#endif
+!                     END DO
+!                  END DO
+!               ENDIF
+!
+            ENDIF ! rand = 1
 
-         ENDIF
+         ENDIF ! timef
 
 ! Every 'tstep' steps, stores the fields 
 ! in binary files
